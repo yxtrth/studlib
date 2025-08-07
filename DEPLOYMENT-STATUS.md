@@ -27,7 +27,9 @@
 ## 🔗 Phase 4: Integration & Testing
 - [x] CORS updated with Netlify URL ➜ **CLIENT_URL set to https://inquisitive-kashata-b3ac7e.netlify.app/**
 - [x] CORS configuration fixed ➜ **Multiple origins now supported**
+- [x] Manifest.json error fixed ➜ **Created proper manifest.json file**
 - [ ] Backend redeployed with new CORS ➜ **Click "Manual Deploy" in Render dashboard AGAIN**  
+- [ ] Frontend redeployed with manifest fix ➜ **Trigger deploy in Netlify dashboard**
 - [ ] Registration flow tested ➜ **Use production-test.html to test**
 - [ ] Login flow tested ➜ **Use production-test.html to test**
 - [ ] Database connectivity verified ➜ **Check /api/health endpoint**
