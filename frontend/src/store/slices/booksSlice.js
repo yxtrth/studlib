@@ -165,7 +165,7 @@ export const addBookToFavorites = createAsyncThunk(
   'books/addToFavorites',
   async (bookId, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`/users/favorites/books/${bookId}`);
+      await axios.post(`/users/favorites/books/${bookId}`);
       return { bookId, isFavorite: true };
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to add to favorites';
@@ -178,7 +178,7 @@ export const removeBookFromFavorites = createAsyncThunk(
   'books/removeFromFavorites',
   async (bookId, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(`/users/favorites/books/${bookId}`);
+      await axios.delete(`/users/favorites/books/${bookId}`);
       return { bookId, isFavorite: false };
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to remove from favorites';

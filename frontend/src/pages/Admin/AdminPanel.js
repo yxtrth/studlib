@@ -28,9 +28,6 @@ const AdminPanel = () => {
   const { videos, isLoading: videosLoading } = useSelector((state) => state.videos);
 
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [selectedBooks, setSelectedBooks] = useState([]);
-  const [selectedVideos, setSelectedVideos] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
@@ -235,47 +232,47 @@ const AdminPanel = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user._id}>
+                  {users.map((userItem) => (
+                    <tr key={userItem._id}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <img
                             className="h-10 w-10 rounded-full"
-                            src={user.avatar || '/api/placeholder/40/40'}
-                            alt={user.name}
+                            src={userItem.avatar || '/api/placeholder/40/40'}
+                            alt={userItem.name}
                           />
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {user.name}
+                              {userItem.name}
                             </div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-sm text-gray-500">{userItem.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.studentId || 'N/A'}
+                        {userItem.studentId || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.department || 'N/A'}
+                        {userItem.department || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <select
-                          value={user.role}
-                          onChange={(e) => handleUpdateUserRole(user._id, e.target.value)}
+                          value={userItem.role}
+                          onChange={(e) => handleUpdateUserRole(userItem._id, e.target.value)}
                           className="text-sm border border-gray-300 rounded-md px-2 py-1"
-                          disabled={user._id === user._id} // Can't change own role
+                          disabled={userItem._id === user._id} // Can't change own role
                         >
                           <option value="student">Student</option>
                           <option value="admin">Admin</option>
                         </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(user.createdAt).toLocaleDateString()}
+                        {new Date(userItem.createdAt).toLocaleDateString()}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        {user._id !== user._id && (
+                        {userItem._id !== user._id && (
                           <button
-                            onClick={() => confirmDelete('user', user)}
+                            onClick={() => confirmDelete('user', userItem)}
                             className="text-red-600 hover:text-red-900"
                           >
                             <TrashIcon className="h-4 w-4" />
