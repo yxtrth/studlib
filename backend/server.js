@@ -34,15 +34,29 @@ try {
   // CORS origins configuration - used for both Socket.IO and Express
   const allowedOrigins = [
     'http://localhost:3000',
-    'https://inquisitive-kashata-b3ac7e.netlify.app', 
+    'https://inquisitive-kashata-b3ac7e.netlify.app',
     process.env.CLIENT_URL,
-    'http://localhost:5173'  // Added for local development with Vite
+    'http://localhost:5173',  // Added for local development with Vite
+    /^https:\/\/[a-zA-Z0-9-]+--inquisitive-kashata-b3ac7e\.netlify\.app$/ // Allow Netlify preview URLs
   ].filter(Boolean);
+
+  // Helper function to check if origin matches any allowed patterns
+  const isOriginAllowed = (origin) => {
+    if (!origin) return true;
+    return allowedOrigins.some(allowed => 
+      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
 
   // Socket.IO setup
   const io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: (origin, callback) => {
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ["GET", "POST"],
       credentials: true
     }
@@ -56,10 +70,7 @@ try {
   // CORS configuration using the shared allowedOrigins
   app.use(cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         return callback(null, true);
       } else {
         console.log('CORS blocked origin:', origin);
