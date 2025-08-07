@@ -1,0 +1,10 @@
+{
+  "short_name": "Student Library",
+  "name": "Student Library Management System",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "description": "A comprehensive student library management system for educational resources"
+}
