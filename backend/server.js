@@ -49,6 +49,7 @@ try {
     // Check if it's a Netlify preview URL
     const netlifyPreviewPattern = /^https:\/\/[a-zA-Z0-9-]+--inquisitive-kashata-b3ac7e\.netlify\.app$/;
     return netlifyPreviewPattern.test(origin);
+  };
 
   // Socket.IO setup
   const io = new Server(server, {
