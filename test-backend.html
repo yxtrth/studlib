@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Connection Test</title>
+</head>
+<body>
+    <h1>Student Library Backend Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testBackend() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test health endpoint
+                const response = await fetch('http://localhost:5000/api/health');
+                const data = await response.json();
+                
+                results.innerHTML = `
+                    <h2>✅ Backend Connection Successful!</h2>
+                    <p><strong>Status:</strong> ${data.status}</p>
+                    <p><strong>Database:</strong> ${data.database}</p>
+                    <p><strong>Message:</strong> ${data.message}</p>
+                    <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                    <hr>
+                    <h3>Test Registration Endpoint:</h3>
+                    <button onclick="testRegister()">Test Register API</button>
+                `;
+            } catch (error) {
+                results.innerHTML = `
+                    <h2>❌ Backend Connection Failed!</h2>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Make sure the backend server is running on port 5000</p>
+                    <p>Run: <code>cd backend && npm run dev</code></p>
+                `;
+            }
+        }
+        
+        async function testRegister() {
+            try {
+                const testData = {
+                    name: 'Test User',
+                    email: 'test@test.com',
+                    password: 'test123',
+                    studentId: 'TEST001',
+                    department: 'Computer Science'
+                };
+                
+                const response = await fetch('http://localhost:5000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Registration endpoint working! (User might already exist)');
+                } else {
+                    alert(`⚠️ Registration response: ${result.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert(`❌ Registration test failed: ${error.message}`);
+            }
+        }
+        
+        // Test connection when page loads
+        testBackend();
+    </script>
+</body>
+</html>
