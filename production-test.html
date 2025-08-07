@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Production Deployment Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        input { padding: 8px; margin: 5px; border: 1px solid #ddd; border-radius: 3px; width: 200px; }
+        .test-results { background: #f8f9fa; padding: 10px; border-radius: 3px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Student Library - Production Deployment Test</h1>
+    
+    <div class="test-section">
+        <h2>📋 Step 1: Configuration</h2>
+        <p>Enter your deployment URLs:</p>
+        <label>Frontend URL: </label>
+        <input type="text" id="frontendUrl" placeholder="https://your-app.netlify.app" value="https://inquisitive-kashata-b3ac7e.netlify.app" style="width: 300px;"><br>
+        <label>Backend URL: </label>
+        <input type="text" id="backendUrl" placeholder="https://your-backend.onrender.com" value="https://student-library-backend-o116.onrender.com" style="width: 300px;"><br>
+        <button onclick="saveUrls()">Save URLs</button>
+        <div id="urlStatus"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Step 2: Backend Health Check</h2>
+        <button onclick="testBackendHealth()">Test Backend Health</button>
+        <div id="backendResults" class="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🌐 Step 3: CORS Test</h2>
+        <button onclick="testCORS()">Test CORS Configuration</button>
+        <div id="corsResults" class="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>👤 Step 4: Registration Test</h2>
+        <button onclick="testRegistration()">Test User Registration</button>
+        <div id="registrationResults" class="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔐 Step 5: Login Test</h2>
+        <button onclick="testLogin()">Test User Login</button>
+        <div id="loginResults" class="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📚 Step 6: Protected Routes Test</h2>
+        <button onclick="testProtectedRoutes()">Test Books/Videos Access</button>
+        <div id="protectedResults" class="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📱 Step 7: Frontend Test</h2>
+        <button onclick="testFrontend()">Test Frontend Loading</button>
+        <div id="frontendResults" class="test-results"></div>
+    </div>
+
+    <script>
+        let frontendUrl = '';
+        let backendUrl = '';
+        let testToken = '';
+        let testUserId = '';
+
+        function saveUrls() {
+            frontendUrl = document.getElementById('frontendUrl').value.trim();
+            backendUrl = document.getElementById('backendUrl').value.trim();
+            
+            if (!frontendUrl || !backendUrl) {
+                document.getElementById('urlStatus').innerHTML = '<span class="error">Please enter both URLs</span>';
+                return;
+            }
+            
+            // Remove trailing slashes
+            frontendUrl = frontendUrl.replace(/\/$/, '');
+            backendUrl = backendUrl.replace(/\/$/, '');
+            
+            document.getElementById('urlStatus').innerHTML = `
+                <span class="success">✅ URLs saved!</span><br>
+                Frontend: ${frontendUrl}<br>
+                Backend: ${backendUrl}
+            `;
+        }
+
+        async function testBackendHealth() {
+            if (!backendUrl) {
+                document.getElementById('backendResults').innerHTML = '<span class="error">Please set backend URL first</span>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/api/health`);
+                const data = await response.json();
+                
+                document.getElementById('backendResults').innerHTML = `
+                    <span class="success">✅ Backend Health Check Passed!</span><br>
+                    Status: ${data.status}<br>
+                    Database: ${data.database}<br>
+                    Message: ${data.message}
+                `;
+            } catch (error) {
+                document.getElementById('backendResults').innerHTML = `
+                    <span class="error">❌ Backend Health Check Failed!</span><br>
+                    Error: ${error.message}<br>
+                    <strong>Fix:</strong> Make sure your backend is deployed and running on Render
+                `;
+            }
+        }
+
+        async function testCORS() {
+            if (!backendUrl) {
+                document.getElementById('corsResults').innerHTML = '<span class="error">Please set backend URL first</span>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${backendUrl}/api/test`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                document.getElementById('corsResults').innerHTML = `
+                    <span class="success">✅ CORS Configuration Working!</span><br>
+                    Cross-origin requests are allowed<br>
+                    Response: ${data.message}
+                `;
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    document.getElementById('corsResults').innerHTML = `
+                        <span class="error">❌ CORS Error Detected!</span><br>
+                        Error: ${error.message}<br>
+                        <strong>Fix:</strong> Update CLIENT_URL in Render environment variables to: ${frontendUrl}
+                    `;
+                } else {
+                    document.getElementById('corsResults').innerHTML = `
+                        <span class="warning">⚠️ Network Error (not CORS)</span><br>
+                        Error: ${error.message}
+                    `;
+                }
+            }
+        }
+
+        async function testRegistration() {
+            if (!backendUrl) {
+                document.getElementById('registrationResults').innerHTML = '<span class="error">Please set backend URL first</span>';
+                return;
+            }
+
+            const testUser = {
+                name: 'Test User',
+                email: `test${Date.now()}@example.com`,
+                password: 'test123456',
+                studentId: `TEST${Date.now()}`,
+                department: 'Computer Science'
+            };
+
+            try {
+                const response = await fetch(`${backendUrl}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testUser)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    testToken = data.token;
+                    testUserId = data.user._id;
+                    document.getElementById('registrationResults').innerHTML = `
+                        <span class="success">✅ Registration Working!</span><br>
+                        User created: ${data.user.name}<br>
+                        Email: ${data.user.email}<br>
+                        Token received: Yes
+                    `;
+                } else {
+                    document.getElementById('registrationResults').innerHTML = `
+                        <span class="error">❌ Registration Failed!</span><br>
+                        Error: ${data.message}<br>
+                        Status: ${response.status}
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('registrationResults').innerHTML = `
+                    <span class="error">❌ Registration Test Failed!</span><br>
+                    Error: ${error.message}
+                `;
+            }
+        }
+
+        async function testLogin() {
+            if (!backendUrl) {
+                document.getElementById('loginResults').innerHTML = '<span class="error">Please set backend URL first</span>';
+                return;
+            }
+
+            const loginData = {
+                email: 'test@example.com',
+                password: 'test123'
+            };
+
+            try {
+                const response = await fetch(`${backendUrl}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    testToken = data.token;
+                    document.getElementById('loginResults').innerHTML = `
+                        <span class="success">✅ Login Working!</span><br>
+                        User: ${data.user.name}<br>
+                        Token received: Yes
+                    `;
+                } else {
+                    document.getElementById('loginResults').innerHTML = `
+                        <span class="warning">⚠️ Login Response (create user first)</span><br>
+                        Message: ${data.message}<br>
+                        Status: ${response.status}
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('loginResults').innerHTML = `
+                    <span class="error">❌ Login Test Failed!</span><br>
+                    Error: ${error.message}
+                `;
+            }
+        }
+
+        async function testProtectedRoutes() {
+            if (!backendUrl) {
+                document.getElementById('protectedResults').innerHTML = '<span class="error">Please set backend URL first</span>';
+                return;
+            }
+
+            const endpoints = [
+                { name: 'Books', url: '/api/books' },
+                { name: 'Videos', url: '/api/videos' }
+            ];
+
+            let results = '';
+
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(`${backendUrl}${endpoint.url}`, {
+                        headers: testToken ? {
+                            'Authorization': `Bearer ${testToken}`
+                        } : {}
+                    });
+
+                    if (response.status === 200 || response.status === 401) {
+                        results += `<span class="success">✅ ${endpoint.name}: Available</span><br>`;
+                    } else {
+                        results += `<span class="warning">⚠️ ${endpoint.name}: Status ${response.status}</span><br>`;
+                    }
+                } catch (error) {
+                    results += `<span class="error">❌ ${endpoint.name}: Failed</span><br>`;
+                }
+            }
+
+            document.getElementById('protectedResults').innerHTML = results;
+        }
+
+        async function testFrontend() {
+            if (!frontendUrl) {
+                document.getElementById('frontendResults').innerHTML = '<span class="error">Please set frontend URL first</span>';
+                return;
+            }
+
+            try {
+                const response = await fetch(frontendUrl);
+                
+                if (response.ok) {
+                    document.getElementById('frontendResults').innerHTML = `
+                        <span class="success">✅ Frontend Loading Successfully!</span><br>
+                        Status: ${response.status}<br>
+                        <a href="${frontendUrl}" target="_blank">Open Frontend →</a>
+                    `;
+                } else {
+                    document.getElementById('frontendResults').innerHTML = `
+                        <span class="error">❌ Frontend Loading Failed!</span><br>
+                        Status: ${response.status}
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('frontendResults').innerHTML = `
+                    <span class="error">❌ Frontend Test Failed!</span><br>
+                    Error: ${error.message}
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

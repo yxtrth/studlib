@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Signup Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .test-box { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        input, button { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; background: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Quick Signup Test</h1>
+    
+    <div class="test-box">
+        <h2>1. Backend Health Check</h2>
+        <p>Backend URL: <strong>https://student-library-backend-o116.onrender.com</strong></p>
+        <button onclick="testHealth()">Test Backend Health</button>
+        <div id="healthResult" class="result"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>2. Test User Registration</h2>
+        <form onsubmit="testSignup(event)">
+            <div>
+                <label>Name:</label><br>
+                <input type="text" id="name" value="Test User" required>
+            </div>
+            <div>
+                <label>Email:</label><br>
+                <input type="email" id="email" value="test@example.com" required>
+            </div>
+            <div>
+                <label>Password:</label><br>
+                <input type="password" id="password" value="password123" required>
+            </div>
+            <br>
+            <button type="submit">Test Signup</button>
+        </form>
+        <div id="signupResult" class="result"></div>
+    </div>
+
+    <div class="test-box">
+        <h2>3. Next Steps</h2>
+        <p>After successful test:</p>
+        <ol>
+            <li>Start your frontend: <code>cd frontend && npm start</code></li>
+            <li>Go to <code>http://localhost:3000/register</code></li>
+            <li>Try signing up with a new email</li>
+        </ol>
+    </div>
+
+    <script>
+        const API_URL = 'https://student-library-backend-o116.onrender.com/api';
+
+        async function testHealth() {
+            const resultDiv = document.getElementById('healthResult');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<span class="success">✅ Backend is healthy!</span><br>Response: ${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Backend error: ${response.status}</span>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Connection failed: ${error.message}</span>`;
+            }
+        }
+
+        async function testSignup(event) {
+            event.preventDefault();
+            
+            const resultDiv = document.getElementById('signupResult');
+            resultDiv.innerHTML = 'Testing signup...';
+            
+            const userData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<span class="success">✅ Signup successful!</span><br>User: ${data.user.name}<br>Email: ${data.user.email}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Signup failed: ${data.message}</span>`;
+                    if (data.message.includes('already exists')) {
+                        resultDiv.innerHTML += '<br><strong>Try a different email address!</strong>';
+                    }
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Request failed: ${error.message}</span>`;
+            }
+        }
+
+        // Auto-test health on page load
+        window.onload = function() {
+            testHealth();
+        }
+    </script>
+</body>
+</html>

@@ -31,23 +31,43 @@ try {
   server = createServer(app);
   console.log('✓ Express app and HTTP server created');
 
+  // CORS origins configuration - used for both Socket.IO and Express
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'https://inquisitive-kashata-b3ac7e.netlify.app',
+    process.env.CLIENT_URL
+  ].filter(Boolean);
+
   // Socket.IO setup
   const io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || "http://localhost:3000",
-      methods: ["GET", "POST"]
+      origin: allowedOrigins,
+      methods: ["GET", "POST"],
+      credentials: true
     }
   });
-  console.log('✓ Socket.IO configured');
+  console.log('✓ Socket.IO configured with origins:', allowedOrigins);
 
   // Middleware
   app.use(helmet());
   app.use(morgan('combined'));
+  
+  // CORS configuration using the shared allowedOrigins
   app.use(cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        console.log('CORS blocked origin:', origin);
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true
   }));
-  console.log('✓ Security middleware configured');
+  console.log('✓ Security middleware configured with origins:', allowedOrigins);
 
   // Rate limiting
   const limiter = rateLimit({
