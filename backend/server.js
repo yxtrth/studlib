@@ -34,8 +34,9 @@ try {
   // CORS origins configuration - used for both Socket.IO and Express
   const allowedOrigins = [
     'http://localhost:3000',
-    'https://inquisitive-kashata-b3ac7e.netlify.app',
-    process.env.CLIENT_URL
+    'https://inquisitive-kashata-b3ac7e.netlify.app', 
+    process.env.CLIENT_URL,
+    'http://localhost:5173'  // Added for local development with Vite
   ].filter(Boolean);
 
   // Socket.IO setup
