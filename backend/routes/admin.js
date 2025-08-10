@@ -556,6 +556,38 @@ router.put('/videos/:videoId/status', [
   }
 });
 
+// @desc    Check current URLs for books and videos
+// @route   GET /api/admin/check-urls
+// @access  Public (for debugging)
+router.get('/check-urls', async (req, res) => {
+  try {
+    console.log('🔍 Checking current URLs...');
+    
+    const videos = await Video.find({}).limit(5).select('title url');
+    const books = await Book.find({}).limit(5).select('title pdfFile');
+    
+    res.json({
+      success: true,
+      videos: videos.map(v => ({
+        title: v.title,
+        url: v.url,
+        isEmbed: v.url?.includes('/embed/') || false,
+        hasUrl: !!v.url
+      })),
+      books: books.map(b => ({
+        title: b.title,
+        pdfUrl: b.pdfFile?.url,
+        hasPdfUrl: !!b.pdfFile?.url
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // @desc    Fix URLs for books and videos  
 // @route   POST /api/admin/fix-urls
 // @access  Public (for debugging)

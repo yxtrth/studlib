@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Book and Video URLs</title>
+</head>
+<body>
+    <h1>Test Book and Video URLs</h1>
+    
+    <h2>Test Book URL</h2>
+    <p>Testing Project Gutenberg link:</p>
+    <a href="https://www.gutenberg.org/ebooks/74" target="_blank">Test Book: Adventures of Tom Sawyer</a>
+    
+    <h2>Test Video URL</h2>
+    <p>Testing YouTube embed:</p>
+    <iframe 
+        width="560" 
+        height="315" 
+        src="https://www.youtube.com/embed/RGOj5yH7evk" 
+        title="YouTube video player" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+    
+    <h2>API Test</h2>
+    <button onclick="testAPI()">Test Fix URLs API</button>
+    <div id="result"></div>
+    
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('https://student-library-backend-o116.onrender.com/api/admin/fix-urls', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>API Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h3>Error:</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+        
+        // Test the fix immediately when page loads
+        window.onload = function() {
+            setTimeout(testAPI, 2000); // Wait 2 seconds then test
+        };
+    </script>
+</body>
+</html>
