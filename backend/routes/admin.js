@@ -614,22 +614,23 @@ router.post('/fix-urls', async (req, res) => {
       }
       // If URL is missing, add a default educational video
       else if (!video.url || video.url.trim() === '') {
+        // Using known embeddable educational videos
         const defaultVideoIds = [
-          'RGOj5yH7evk', // Git and GitHub for Beginners
-          'SWYqp7iY_Tc', // Git & GitHub Crash Course
-          'hdI2bqOjy3c', // JavaScript for Beginners
-          'PkZNo7MFNFg', // Learn JavaScript - Full Course
-          'Ke90Tje7VS0', // React Course - Beginner's Tutorial
-          'nTeuhbP7wdE', // React Tutorial for Beginners
-          '0riHps91AzE', // Node.js Tutorial for Beginners
-          'TlB_eWDSMt4', // Node.js Full Course
-          '9OPP_1eAENg', // MySQL Tutorial for Beginners
-          'HXV3zeQKqGY', // SQL - Full Database Course
-          'ER9SspLe4Hg', // Python for Everybody - Full Course
-          'rfscVS0vtbw', // Learn Python - Full Course
-          'WGJJIrtnfpk', // C Programming Tutorial
-          'KJgsSFOSQv0', // C Programming Full Course
-          'vLnPwxZdW4Y'  // C++ Tutorial for Beginners
+          'PkZNo7MFNFg', // Learn JavaScript - Full Course for Beginners
+          'rfscVS0vtbw', // Learn Python - Full Course for Beginners  
+          'Ke90Tje7VS0', // React Course - Beginner's Tutorial for React JavaScript Library
+          'WGJJIrtnfpk', // C Programming Tutorial for Beginners
+          'HXV3zeQKqGY', // SQL - Full Database Course for Beginners
+          'vLnPwxZdW4Y', // C++ Tutorial for Beginners - Full Course
+          '9OPP_1eAENg', // MySQL Tutorial for Beginners [Full Course]
+          'TlB_eWDSMt4', // Node.js Tutorial for Beginners: Learn Node in 1 Hour
+          'hdI2bqOjy3c', // JavaScript Crash Course For Beginners
+          'YYXdXT2l-Gg', // Python Tutorial - Python for Beginners [Full Course]
+          'nTeuhbP7wdE', // React Tutorial for Beginners [React js]
+          'ER9SspLe4Hg', // Python for Everybody - Full University Python Course
+          'KJgsSFOSQv0', // C Programming Full Course for free
+          'UB1O30fR-EE', // Web Development In 2021 - A Practical Guide
+          'LHBE6Q9XlzI'  // HTML & CSS Full Course - Beginner to Pro
         ];
         const randomVideoId = defaultVideoIds[videoUpdates % defaultVideoIds.length];
         newUrl = `https://www.youtube.com/embed/${randomVideoId}`;
