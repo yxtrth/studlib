@@ -34,8 +34,7 @@ try {
   // CORS origins configuration - used for both Socket.IO and Express
   const allowedOrigins = [
     'http://localhost:3000',
-    'https://inquisitive-kashata-b3ac7e.netlify.app',
-    'https://68990f82e394e984cfffb871--inquisitive-kashata-b3ac7e.netlify.app',
+    'https://inquisitive-kashata-b3ac7e.netlify.app', // Main production URL
     process.env.CLIENT_URL,
     'http://localhost:5173',  // Added for local development with Vite
     'http://127.0.0.1:5500', // Added for VS Code Live Server
@@ -49,20 +48,43 @@ try {
     // Check exact matches first
     if (allowedOrigins.includes(origin)) return true;
     
-    // Check if it's a Netlify preview URL
+    // Check if it's any Netlify preview URL for your domain
     const netlifyPreviewPattern = /^https:\/\/[a-zA-Z0-9-]+--inquisitive-kashata-b3ac7e\.netlify\.app$/;
-    return netlifyPreviewPattern.test(origin);
+    if (netlifyPreviewPattern.test(origin)) {
+      console.log('✓ Allowed Netlify preview URL:', origin);
+      return true;
+    }
+    
+    // Also allow the main Netlify domain without preview prefix
+    const netlifyMainPattern = /^https:\/\/inquisitive-kashata-b3ac7e\.netlify\.app$/;
+    if (netlifyMainPattern.test(origin)) {
+      console.log('✓ Allowed main Netlify URL:', origin);
+      return true;
+    }
+    
+    console.log('✗ Origin not allowed:', origin);
+    return false;
   };
 
   // Socket.IO setup
   const io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps)
+        if (!origin) return callback(null, true);
+        
+        if (isOriginAllowed(origin)) {
+          callback(null, true);
+        } else {
+          console.log('Socket.IO CORS blocked origin:', origin);
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       methods: ["GET", "POST"],
       credentials: true
     }
   });
-  console.log('✓ Socket.IO configured with origins:', allowedOrigins);
+  console.log('✓ Socket.IO configured with dynamic CORS checking');
 
   // Middleware
   app.use(helmet());
