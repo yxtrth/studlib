@@ -141,9 +141,9 @@ const BookDetail = () => {
 
             {/* Action Buttons */}
             <div className="mt-6 space-y-3">
-              {currentBook.fileUrl && (
+              {currentBook.pdfFile?.url && (
                 <a
-                  href={currentBook.fileUrl}
+                  href={currentBook.pdfFile.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full bg-primary-600 text-white py-3 px-4 rounded-md font-medium hover:bg-primary-700 transition-colors duration-200 flex items-center justify-center"
