@@ -162,68 +162,16 @@ const VideoDetail = () => {
         <div className="lg:col-span-2">
           <div className="bg-black rounded-lg overflow-hidden shadow-lg">
             <div className="relative">
-              <video
-                ref={videoRef}
-                className="w-full h-auto max-h-96"
-                poster={currentVideo.thumbnail}
-                onTimeUpdate={handleTimeUpdate}
-                onLoadedMetadata={() => setDuration(videoRef.current.duration)}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
-              >
-                <source src={currentVideo.videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-
-              {/* Video Controls */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                {/* Progress Bar */}
-                <div
-                  className="w-full h-1 bg-gray-600 rounded-full cursor-pointer mb-3"
-                  onClick={handleSeek}
-                >
-                  <div
-                    className="h-full bg-primary-500 rounded-full"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={handlePlayPause}
-                      className="text-white hover:text-primary-400 transition-colors"
-                    >
-                      {isPlaying ? (
-                        <PauseIcon className="h-6 w-6" />
-                      ) : (
-                        <PlayIcon className="h-6 w-6" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={handleMute}
-                      className="text-white hover:text-primary-400 transition-colors"
-                    >
-                      {isMuted ? (
-                        <SpeakerXMarkIcon className="h-6 w-6" />
-                      ) : (
-                        <SpeakerWaveIcon className="h-6 w-6" />
-                      )}
-                    </button>
-
-                    <span className="text-white text-sm">
-                      {formatTime(currentTime)} / {formatTime(duration)}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={handleShare}
-                    className="text-white hover:text-primary-400 transition-colors"
-                  >
-                    <ShareIcon className="h-5 w-5" />
-                  </button>
-                </div>
+              {/* YouTube Embed */}
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
+                <iframe
+                  className="absolute top-0 left-0 w-full h-full"
+                  src={currentVideo.videoUrl}
+                  title={currentVideo.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
               </div>
             </div>
           </div>
