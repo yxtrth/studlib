@@ -81,7 +81,10 @@ const VideoDetail = () => {
 
   // Convert YouTube URL to embed format if needed
   const getEmbedUrl = (url) => {
-    if (!url) return '';
+    if (!url) {
+      // Fallback to a known working educational video
+      return 'https://www.youtube.com/embed/PkZNo7MFNFg'; // JavaScript Full Course
+    }
     
     // If already an embed URL, return as is
     if (url.includes('/embed/')) {
@@ -104,8 +107,8 @@ const VideoDetail = () => {
       }
     }
     
-    // Return original URL if not a YouTube URL
-    return url;
+    // If not a YouTube URL, or conversion failed, use fallback
+    return url.startsWith('http') ? url : 'https://www.youtube.com/embed/PkZNo7MFNFg';
   };
 
   const handlePlayPause = () => {
@@ -193,14 +196,27 @@ const VideoDetail = () => {
             <div className="relative">
               {/* YouTube Embed */}
               <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
-                <iframe
-                  className="absolute top-0 left-0 w-full h-full"
-                  src={getEmbedUrl(currentVideo.url)}
-                  title={currentVideo.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+                {currentVideo.url ? (
+                  <iframe
+                    className="absolute top-0 left-0 w-full h-full"
+                    src={getEmbedUrl(currentVideo.url)}
+                    title={currentVideo.title}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    onError={() => {
+                      console.error('Video failed to load:', currentVideo.url);
+                      toast.error('Video failed to load. Please try again later.');
+                    }}
+                  ></iframe>
+                ) : (
+                  <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-800 text-white">
+                    <div className="text-center">
+                      <p className="text-lg mb-2">Video not available</p>
+                      <p className="text-sm text-gray-400">This video is currently unavailable</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

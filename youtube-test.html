@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Embed Test</title>
+</head>
+<body>
+    <h1>YouTube Embed Test</h1>
+    
+    <h2>Test 1: Known Working Video</h2>
+    <iframe 
+        width="560" 
+        height="315" 
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+        title="Test Video 1" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+    
+    <h2>Test 2: Programming Tutorial</h2>
+    <iframe 
+        width="560" 
+        height="315" 
+        src="https://www.youtube.com/embed/PkZNo7MFNFg" 
+        title="JavaScript Tutorial" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+    
+    <h2>Test 3: Educational Content</h2>
+    <iframe 
+        width="560" 
+        height="315" 
+        src="https://www.youtube.com/embed/Ke90Tje7VS0" 
+        title="React Tutorial" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+    </iframe>
+
+    <h2>API Tests</h2>
+    <button onclick="checkUrls()">Check Current URLs</button>
+    <button onclick="fixUrls()">Fix URLs</button>
+    <div id="result"></div>
+    
+    <script>
+        async function checkUrls() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Checking URLs...';
+            
+            try {
+                const response = await fetch('https://student-library-backend-o116.onrender.com/api/admin/check-urls');
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>Current URLs:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function fixUrls() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Fixing URLs...';
+            
+            try {
+                const response = await fetch('https://student-library-backend-o116.onrender.com/api/admin/fix-urls', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h3>Fix Results:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
