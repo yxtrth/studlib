@@ -36,7 +36,9 @@ try {
     'http://localhost:3000',
     'https://inquisitive-kashata-b3ac7e.netlify.app',
     process.env.CLIENT_URL,
-    'http://localhost:5173'  // Added for local development with Vite
+    'http://localhost:5173',  // Added for local development with Vite
+    'http://127.0.0.1:5500', // Added for VS Code Live Server
+    'http://localhost:5500'  // Added for VS Code Live Server alternative URL
   ].filter(Boolean);
 
   // Helper function to check if origin matches any allowed patterns
@@ -98,9 +100,22 @@ try {
 
   const connectDB = async () => {
     try {
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/student-library', {
-        serverSelectionTimeoutMS: 5000, // 5 second timeout
+      console.log('Connecting to MongoDB URI:', process.env.MONGODB_URI || 'mongodb://localhost:27017/student-library');
+      
+      // Check if MongoDB service is running
+      const { exec } = require('child_process');
+      exec('sc query MongoDB', (error, stdout, stderr) => {
+        if (error) {
+          console.log('⚠️ MongoDB service status check failed. Make sure MongoDB is installed.');
+        } else {
+          console.log('MongoDB service status:', stdout);
+        }
       });
+      
+      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/student-library', {
+        serverSelectionTimeoutMS: 5000 // 5 second timeout
+      });
+      
       console.log('✓ MongoDB connected successfully');
       return true;
     } catch (err) {
@@ -213,7 +228,7 @@ try {
     res.status(404).json({ message: 'Route not found' });
   });
 
-  const PORT = process.env.PORT || 5000;
+  const PORT = process.env.PORT || 8080;
 
   server.listen(PORT, () => {
     console.log(`✓ Server running on port ${PORT}`);

@@ -39,6 +39,16 @@ const userSchema = new mongoose.Schema({
     maxLength: [500, 'Bio cannot exceed 500 characters'],
     default: ''
   },
+  studentId: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  department: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   role: {
     type: String,
     enum: ['student', 'admin'],

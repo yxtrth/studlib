@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Authentication Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+        textarea { width: 100%; height: 100px; font-family: monospace; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Login Authentication Debug Test</h1>
+        
+        <!-- Environment Check -->
+        <div class="test-section">
+            <h3>1. Environment Check</h3>
+            <button onclick="checkEnvironment()">Check Environment Variables</button>
+            <div id="env-result"></div>
+        </div>
+
+        <!-- Password Hashing Test -->
+        <div class="test-section">
+            <h3>2. Password Hashing Test</h3>
+            <input type="text" id="test-password" placeholder="Enter password to hash" value="password">
+            <button onclick="testPasswordHashing()">Generate Hash</button>
+            <div id="hash-result"></div>
+        </div>
+
+        <!-- Login Test -->
+        <div class="test-section">
+            <h3>3. Login Authentication Test</h3>
+            <div>
+                <input type="email" id="login-email" placeholder="Email" value="test@test.com">
+                <input type="password" id="login-password" placeholder="Password" value="password">
+                <button onclick="testLogin()">Test Login</button>
+            </div>
+            <div id="login-result"></div>
+        </div>
+
+        <!-- Token Verification Test -->
+        <div class="test-section">
+            <h3>4. Token Verification Test</h3>
+            <textarea id="token-input" placeholder="Paste JWT token here"></textarea>
+            <br>
+            <button onclick="testTokenVerification()">Verify Token</button>
+            <div id="token-result"></div>
+        </div>
+
+        <!-- Full Login Flow Test -->
+        <div class="test-section">
+            <h3>5. Full Login Flow Test</h3>
+            <button onclick="testFullLoginFlow()">Test Complete Login Flow</button>
+            <div id="flow-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api/test';
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                return { success: response.ok, status: response.status, data };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        function displayResult(elementId, result, title = '') {
+            const element = document.getElementById(elementId);
+            const isSuccess = result.success;
+            
+            element.innerHTML = `
+                <div class="${isSuccess ? 'success' : 'error'}" style="margin-top: 10px;">
+                    <h4>${title} ${isSuccess ? '✅' : '❌'}</h4>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function checkEnvironment() {
+            const result = await makeRequest(`${API_BASE}/env-check`);
+            displayResult('env-result', result, 'Environment Check');
+        }
+
+        async function testPasswordHashing() {
+            const password = document.getElementById('test-password').value;
+            const result = await makeRequest(`${API_BASE}/hash-password`, {
+                method: 'POST',
+                body: JSON.stringify({ password })
+            });
+            displayResult('hash-result', result, 'Password Hashing');
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const result = await makeRequest(`${API_BASE}/login`, {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+            
+            displayResult('login-result', result, 'Login Test');
+            
+            // If login successful, store token for verification test
+            if (result.success && result.data.token) {
+                document.getElementById('token-input').value = result.data.token;
+            }
+        }
+
+        async function testTokenVerification() {
+            const token = document.getElementById('token-input').value;
+            
+            if (!token) {
+                displayResult('token-result', { success: false, error: 'No token provided' }, 'Token Verification');
+                return;
+            }
+            
+            const result = await makeRequest(`${API_BASE}/verify-token`, {
+                method: 'POST',
+                body: JSON.stringify({ token })
+            });
+            
+            displayResult('token-result', result, 'Token Verification');
+        }
+
+        async function testFullLoginFlow() {
+            const flowResult = document.getElementById('flow-result');
+            flowResult.innerHTML = '<div class="info">Running full login flow test...</div>';
+            
+            let results = [];
+            
+            // Step 1: Environment check
+            const envResult = await makeRequest(`${API_BASE}/env-check`);
+            results.push({ step: '1. Environment Check', ...envResult });
+            
+            // Step 2: Login
+            const loginResult = await makeRequest(`${API_BASE}/login`, {
+                method: 'POST',
+                body: JSON.stringify({ email: 'test@test.com', password: 'password' })
+            });
+            results.push({ step: '2. Login', ...loginResult });
+            
+            // Step 3: Token verification (if login successful)
+            if (loginResult.success && loginResult.data.token) {
+                const tokenResult = await makeRequest(`${API_BASE}/verify-token`, {
+                    method: 'POST',
+                    body: JSON.stringify({ token: loginResult.data.token })
+                });
+                results.push({ step: '3. Token Verification', ...tokenResult });
+            } else {
+                results.push({ step: '3. Token Verification', success: false, error: 'No token from login' });
+            }
+            
+            const overallSuccess = results.every(r => r.success);
+            
+            flowResult.innerHTML = `
+                <div class="${overallSuccess ? 'success' : 'error'}">
+                    <h4>Full Login Flow ${overallSuccess ? '✅' : '❌'}</h4>
+                    <pre>${JSON.stringify(results, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        // Run environment check on page load
+        window.onload = function() {
+            checkEnvironment();
+        };
+    </script>
+</body>
+</html>

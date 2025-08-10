@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up Fix Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .test-section { 
+            background: white; 
+            margin: 15px 0; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { background-color: #d4edda; border-left: 4px solid #28a745; }
+        .error { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        input { 
+            padding: 8px; 
+            margin: 5px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            width: 100%; 
+            max-width: 300px;
+        }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Sign Up Fix Test</h1>
+        
+        <!-- Test FormData Registration -->
+        <div class="test-section">
+            <h3>1. 📝 Test FormData Registration (Like Frontend)</h3>
+            <form id="formdata-test">
+                <label>Name:</label>
+                <input type="text" id="fd-name" value="John Doe" required>
+                
+                <label>Email:</label>
+                <input type="email" id="fd-email" value="john@example.com" required>
+                
+                <label>Password:</label>
+                <input type="password" id="fd-password" value="password123" required>
+                
+                <label>Student ID:</label>
+                <input type="text" id="fd-studentId" value="STU001">
+                
+                <label>Department:</label>
+                <input type="text" id="fd-department" value="Computer Science">
+                
+                <label>Bio:</label>
+                <input type="text" id="fd-bio" value="I am a student">
+                
+                <br><br>
+                <button type="button" onclick="testFormDataRegistration()">Test FormData Registration</button>
+            </form>
+            <div id="formdata-result"></div>
+        </div>
+
+        <!-- Test JSON Registration -->
+        <div class="test-section">
+            <h3>2. 📋 Test JSON Registration (Backup)</h3>
+            <button onclick="testJSONRegistration()">Test JSON Registration</button>
+            <div id="json-result"></div>
+        </div>
+
+        <!-- Server Status -->
+        <div class="test-section">
+            <h3>3. 🏥 Server Status</h3>
+            <button onclick="checkServerStatus()">Check Server Status</button>
+            <div id="status-result"></div>
+        </div>
+
+        <!-- Production Test -->
+        <div class="test-section">
+            <h3>4. 🌐 Production Test</h3>
+            <button onclick="testProductionSignup()">Test Production Server</button>
+            <div id="production-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const LOCAL_API = 'http://localhost:5003/api';
+        const PROD_API = 'https://student-library-backend-o116.onrender.com/api';
+
+        function displayResult(elementId, result, title = '') {
+            const element = document.getElementById(elementId);
+            const isSuccess = result.success !== false && !result.error;
+            
+            element.innerHTML = `
+                <div class="${isSuccess ? 'success' : 'error'}" style="margin-top: 10px;">
+                    <h4>${title} ${isSuccess ? '✅' : '❌'}</h4>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function testFormDataRegistration() {
+            try {
+                const formData = new FormData();
+                formData.append('name', document.getElementById('fd-name').value);
+                formData.append('email', document.getElementById('fd-email').value);
+                formData.append('password', document.getElementById('fd-password').value);
+                formData.append('studentId', document.getElementById('fd-studentId').value);
+                formData.append('department', document.getElementById('fd-department').value);
+                formData.append('bio', document.getElementById('fd-bio').value);
+
+                console.log('Sending FormData to:', `${LOCAL_API}/auth/register`);
+
+                const response = await fetch(`${LOCAL_API}/auth/register`, {
+                    method: 'POST',
+                    body: formData // Note: No Content-Type header for FormData
+                });
+
+                const data = await response.json();
+                console.log('Response:', data);
+
+                displayResult('formdata-result', {
+                    success: response.ok,
+                    status: response.status,
+                    data
+                }, 'FormData Registration');
+
+            } catch (error) {
+                console.error('FormData test error:', error);
+                displayResult('formdata-result', {
+                    success: false,
+                    error: error.message
+                }, 'FormData Registration');
+            }
+        }
+
+        async function testJSONRegistration() {
+            try {
+                const userData = {
+                    name: 'Jane Doe',
+                    email: 'jane@example.com',
+                    password: 'password123',
+                    studentId: 'STU002',
+                    department: 'Engineering',
+                    bio: 'Engineering student'
+                };
+
+                const response = await fetch(`${LOCAL_API}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+
+                displayResult('json-result', {
+                    success: response.ok,
+                    status: response.status,
+                    data
+                }, 'JSON Registration');
+
+            } catch (error) {
+                displayResult('json-result', {
+                    success: false,
+                    error: error.message
+                }, 'JSON Registration');
+            }
+        }
+
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${LOCAL_API}/health`);
+                const data = await response.json();
+
+                displayResult('status-result', {
+                    success: response.ok,
+                    status: response.status,
+                    data
+                }, 'Server Status');
+
+            } catch (error) {
+                displayResult('status-result', {
+                    success: false,
+                    error: error.message
+                }, 'Server Status');
+            }
+        }
+
+        async function testProductionSignup() {
+            try {
+                const formData = new FormData();
+                formData.append('name', 'Prod Test User');
+                formData.append('email', 'prodtest@example.com');
+                formData.append('password', 'password123');
+                formData.append('studentId', 'PROD001');
+                formData.append('department', 'Production Testing');
+                formData.append('bio', 'Testing production server');
+
+                const response = await fetch(`${PROD_API}/auth/register`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                displayResult('production-result', {
+                    success: response.ok,
+                    status: response.status,
+                    data
+                }, 'Production Test');
+
+            } catch (error) {
+                displayResult('production-result', {
+                    success: false,
+                    error: error.message
+                }, 'Production Test');
+            }
+        }
+
+        // Auto-check server status on load
+        window.onload = function() {
+            checkServerStatus();
+        };
+    </script>
+</body>
+</html>

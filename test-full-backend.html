@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Full Backend Test - Student Library</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .test-section { 
+            background: white; 
+            margin: 15px 0; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { background-color: #d4edda; border-left: 4px solid #28a745; }
+        .error { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+        .info { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        input { 
+            padding: 8px; 
+            margin: 5px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            width: 200px;
+        }
+        .form-group { margin: 10px 0; }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+            font-size: 12px;
+        }
+        .token-display {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Student Library - Full Backend Test</h1>
+        
+        <!-- Server Health Check -->
+        <div class="test-section">
+            <h3>1. 🏥 Server Health Check</h3>
+            <button onclick="checkHealth()">Check Server Health</button>
+            <div id="health-result"></div>
+        </div>
+
+        <!-- User Registration -->
+        <div class="test-section">
+            <h3>2. 📝 User Registration</h3>
+            <div class="form-group">
+                <input type="text" id="reg-name" placeholder="Name" value="Test User">
+                <input type="email" id="reg-email" placeholder="Email" value="test@example.com">
+                <input type="password" id="reg-password" placeholder="Password" value="test123">
+            </div>
+            <button onclick="testRegister()">Register User</button>
+            <div id="register-result"></div>
+        </div>
+
+        <!-- User Login -->
+        <div class="test-section">
+            <h3>3. 🔐 User Login</h3>
+            <div class="form-group">
+                <input type="email" id="login-email" placeholder="Email" value="test@example.com">
+                <input type="password" id="login-password" placeholder="Password" value="test123">
+            </div>
+            <button onclick="testLogin()">Login</button>
+            <div id="login-result"></div>
+            <div id="token-display"></div>
+        </div>
+
+        <!-- Protected Route Test -->
+        <div class="test-section">
+            <h3>4. 🔒 Protected Route Test (Get Current User)</h3>
+            <button onclick="testProtectedRoute()">Test /api/auth/me</button>
+            <div id="protected-result"></div>
+        </div>
+
+        <!-- Database Connection Test -->
+        <div class="test-section">
+            <h3>5. 🗄️ Database Connection Test</h3>
+            <button onclick="testDatabase()">Test MongoDB Connection</button>
+            <div id="database-result"></div>
+        </div>
+
+        <!-- Full Flow Test -->
+        <div class="test-section">
+            <h3>6. 🔄 Complete Authentication Flow</h3>
+            <button onclick="testFullFlow()">Run Complete Test</button>
+            <div id="flow-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5003/api';
+        let authToken = null;
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                if (authToken) {
+                    headers.Authorization = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch(url, {
+                    headers,
+                    ...options
+                });
+                
+                const data = await response.json();
+                return { 
+                    success: response.ok, 
+                    status: response.status, 
+                    data,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        function displayResult(elementId, result, title = '') {
+            const element = document.getElementById(elementId);
+            const isSuccess = result.success;
+            
+            element.innerHTML = `
+                <div class="${isSuccess ? 'success' : 'error'}" style="margin-top: 10px;">
+                    <h4>${title} ${isSuccess ? '✅' : '❌'}</h4>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function checkHealth() {
+            const result = await makeRequest(`${API_BASE}/health`);
+            displayResult('health-result', result, 'Health Check');
+        }
+
+        async function testRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            const result = await makeRequest(`${API_BASE}/auth/register`, {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password })
+            });
+            
+            displayResult('register-result', result, 'Registration');
+            
+            if (result.success && result.data.token) {
+                authToken = result.data.token;
+                updateTokenDisplay();
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            const result = await makeRequest(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                body: JSON.stringify({ email, password })
+            });
+            
+            displayResult('login-result', result, 'Login');
+            
+            if (result.success && result.data.token) {
+                authToken = result.data.token;
+                updateTokenDisplay();
+            }
+        }
+
+        async function testProtectedRoute() {
+            if (!authToken) {
+                displayResult('protected-result', { 
+                    success: false, 
+                    error: 'No token available. Please login first.' 
+                }, 'Protected Route');
+                return;
+            }
+            
+            const result = await makeRequest(`${API_BASE}/auth/me`);
+            displayResult('protected-result', result, 'Protected Route');
+        }
+
+        async function testDatabase() {
+            // Try to get users count or some database info
+            const result = await makeRequest(`${API_BASE}/users`);
+            displayResult('database-result', result, 'Database Connection');
+        }
+
+        function updateTokenDisplay() {
+            const tokenDiv = document.getElementById('token-display');
+            if (authToken) {
+                tokenDiv.innerHTML = `
+                    <div class="token-display">
+                        <strong>🔑 Active Token:</strong><br>
+                        ${authToken}
+                    </div>
+                `;
+            }
+        }
+
+        async function testFullFlow() {
+            const flowResult = document.getElementById('flow-result');
+            flowResult.innerHTML = '<div class="info">Running complete authentication flow...</div>';
+            
+            let results = [];
+            
+            // Step 1: Health check
+            const healthResult = await makeRequest(`${API_BASE}/health`);
+            results.push({ step: '1. Health Check', ...healthResult });
+            
+            // Step 2: Registration (with unique email)
+            const uniqueEmail = `test${Date.now()}@example.com`;
+            const regResult = await makeRequest(`${API_BASE}/auth/register`, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    name: 'Test User', 
+                    email: uniqueEmail, 
+                    password: 'test123' 
+                })
+            });
+            results.push({ step: '2. Registration', ...regResult });
+            
+            // Step 3: Login
+            if (regResult.success) {
+                const loginResult = await makeRequest(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        email: uniqueEmail, 
+                        password: 'test123' 
+                    })
+                });
+                results.push({ step: '3. Login', ...loginResult });
+                
+                // Step 4: Protected route
+                if (loginResult.success && loginResult.data.token) {
+                    authToken = loginResult.data.token;
+                    const meResult = await makeRequest(`${API_BASE}/auth/me`);
+                    results.push({ step: '4. Protected Route', ...meResult });
+                }
+            }
+            
+            const overallSuccess = results.every(r => r.success);
+            
+            flowResult.innerHTML = `
+                <div class="${overallSuccess ? 'success' : 'error'}">
+                    <h4>Complete Flow Test ${overallSuccess ? '✅' : '❌'}</h4>
+                    <pre>${JSON.stringify(results, null, 2)}</pre>
+                </div>
+            `;
+            
+            updateTokenDisplay();
+        }
+
+        // Run health check on page load
+        window.onload = function() {
+            checkHealth();
+        };
+    </script>
+</body>
+</html>

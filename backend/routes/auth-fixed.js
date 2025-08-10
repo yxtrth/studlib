@@ -1,83 +1,45 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
-const multer = require('multer');
 const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Configure multer for handling form data
-const upload = multer({
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.fieldname === 'avatar') {
-      // Check if file is an image
-      if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only image files are allowed'), false);
-      }
-    } else {
-      cb(null, true);
-    }
-  }
-});
-
-// Custom validation middleware for FormData
-const validateRegistration = (req, res, next) => {
-  const { name, email, password } = req.body;
-  const errors = [];
-
-  // Validate name
-  if (!name || typeof name !== 'string') {
-    errors.push({ field: 'name', message: 'Name is required' });
-  } else if (name.trim().length < 2 || name.trim().length > 50) {
-    errors.push({ field: 'name', message: 'Name must be between 2 and 50 characters' });
-  }
-
-  // Validate email
-  if (!email || typeof email !== 'string') {
-    errors.push({ field: 'email', message: 'Email is required' });
-  } else {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      errors.push({ field: 'email', message: 'Please provide a valid email' });
-    }
-  }
-
-  // Validate password
-  if (!password || typeof password !== 'string') {
-    errors.push({ field: 'password', message: 'Password is required' });
-  } else if (password.length < 6) {
-    errors.push({ field: 'password', message: 'Password must be at least 6 characters long' });
-  }
-
-  if (errors.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors
-    });
-  }
-
-  next();
-};
-
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
-router.post('/register', upload.single('avatar'), validateRegistration, async (req, res) => {
+router.post('/register', [
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Name must be between 2 and 50 characters'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long')
+], async (req, res) => {
   try {
     console.log('📝 Registration attempt for:', req.body.email);
-    console.log('📋 Form data received:', req.body);
     
-    const { name, email, password, studentId, department, bio } = req.body;
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { name, email, password } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       console.log('❌ User already exists:', email);
       return res.status(400).json({ 
@@ -86,29 +48,12 @@ router.post('/register', upload.single('avatar'), validateRegistration, async (r
       });
     }
 
-    // Prepare user data
-    const userData = {
-      name: name.trim(),
-      email: email.toLowerCase(),
-      password,
-      studentId: studentId || '',
-      department: department || '',
-      bio: bio || ''
-    };
-
-    // Handle avatar upload if provided
-    if (req.file) {
-      // Here you would typically upload to Cloudinary
-      // For now, we'll use a placeholder
-      userData.avatar = {
-        public_id: 'temp_' + Date.now(),
-        url: '/api/uploads/avatars/default.png'
-      };
-      console.log('📸 Avatar file uploaded:', req.file.originalname);
-    }
-
     // Create new user (password will be hashed by pre-save middleware)
-    const user = await User.create(userData);
+    const user = await User.create({
+      name,
+      email,
+      password
+    });
 
     console.log('✅ User created successfully:', user._id);
 
@@ -126,9 +71,7 @@ router.post('/register', upload.single('avatar'), validateRegistration, async (r
         avatar: user.avatar,
         bio: user.bio,
         role: user.role,
-        joinDate: user.joinDate,
-        studentId: user.studentId,
-        department: user.department
+        joinDate: user.joinDate
       }
     });
   } catch (error) {
@@ -154,10 +97,14 @@ router.post('/login', [
     .withMessage('Password is required')
 ], async (req, res) => {
   try {
+    console.log('🔐 Login attempt for:', req.body.email);
+    
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
+        success: false,
         message: 'Validation failed',
         errors: errors.array()
       });
@@ -165,29 +112,66 @@ router.post('/login', [
 
     const { email, password } = req.body;
 
-    // Check if user exists
+    // Find user and include password for comparison
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      console.log('❌ User not found:', email);
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid credentials' 
+      });
     }
+
+    console.log('✅ User found:', user._id);
 
     // Check if account is active
     if (!user.isActive) {
-      return res.status(401).json({ message: 'Account is deactivated' });
+      console.log('❌ Account is deactivated:', email);
+      return res.status(401).json({ 
+        success: false,
+        message: 'Account is deactivated' 
+      });
     }
 
-    // Check password
+    console.log('✅ Account is active');
+
+    // Verify password using the model method
     const isPasswordMatch = await user.comparePassword(password);
+    console.log('🔍 Password comparison result:', isPasswordMatch);
+    
     if (!isPasswordMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      console.log('❌ Password does not match for:', email);
+      return res.status(401).json({ 
+        success: false,
+        message: 'Invalid credentials' 
+      });
     }
 
-    // Update last seen
-    await user.updateLastSeen();
+    console.log('✅ Password matches');
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Update last seen timestamp
+    try {
+      await user.updateLastSeen();
+      console.log('✅ Last seen updated');
+    } catch (updateError) {
+      console.log('⚠️ Failed to update last seen:', updateError.message);
+      // Don't fail login if this fails
+    }
 
+    // Generate JWT token
+    let token;
+    try {
+      token = generateToken(user._id);
+      console.log('✅ Token generated successfully');
+    } catch (tokenError) {
+      console.log('❌ Token generation failed:', tokenError.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to generate authentication token'
+      });
+    }
+
+    // Successful login response
     res.json({
       success: true,
       message: 'Login successful',
@@ -203,9 +187,16 @@ router.post('/login', [
         joinDate: user.joinDate
       }
     });
+
+    console.log('✅ Login successful for:', email);
+
   } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ message: 'Server error during login' });
+    console.error('❌ Login error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error during login',
+      ...(process.env.NODE_ENV === 'development' && { debug: error.message })
+    });
   }
 });
 
@@ -214,9 +205,19 @@ router.post('/login', [
 // @access  Private
 router.get('/me', require('../middleware/auth').protect, async (req, res) => {
   try {
+    console.log('👤 Getting current user:', req.user._id);
+    
     const user = await User.findById(req.user._id)
       .populate('favoriteBooks', 'title author coverImage')
       .populate('favoriteVideos', 'title instructor thumbnail');
+
+    if (!user) {
+      console.log('❌ User not found:', req.user._id);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
 
     res.json({
       success: true,
@@ -233,9 +234,15 @@ router.get('/me', require('../middleware/auth').protect, async (req, res) => {
         favoriteVideos: user.favoriteVideos
       }
     });
+
+    console.log('✅ Current user data sent');
   } catch (error) {
-    console.error('Get current user error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Get current user error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { debug: error.message })
+    });
   }
 });
 
@@ -243,6 +250,7 @@ router.get('/me', require('../middleware/auth').protect, async (req, res) => {
 // @route   POST /api/auth/logout
 // @access  Public
 router.post('/logout', (req, res) => {
+  console.log('🚪 Logout request received');
   res.json({
     success: true,
     message: 'Logout successful'
@@ -262,10 +270,14 @@ router.put('/change-password', [
     .withMessage('New password must be at least 6 characters long')
 ], async (req, res) => {
   try {
+    console.log('🔑 Password change request for:', req.user._id);
+    
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
+        success: false,
         message: 'Validation failed',
         errors: errors.array()
       });
@@ -273,26 +285,45 @@ router.put('/change-password', [
 
     const { currentPassword, newPassword } = req.body;
 
-    // Get user with password
+    // Get user with password field
     const user = await User.findById(req.user._id).select('+password');
-
-    // Check current password
-    const isCurrentPasswordMatch = await user.comparePassword(currentPassword);
-    if (!isCurrentPasswordMatch) {
-      return res.status(400).json({ message: 'Current password is incorrect' });
+    if (!user) {
+      console.log('❌ User not found for password change:', req.user._id);
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
     }
 
-    // Update password
+    // Verify current password
+    const isCurrentPasswordMatch = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordMatch) {
+      console.log('❌ Current password incorrect for:', req.user._id);
+      return res.status(400).json({ 
+        success: false,
+        message: 'Current password is incorrect' 
+      });
+    }
+
+    console.log('✅ Current password verified');
+
+    // Update password (will be hashed by pre-save middleware)
     user.password = newPassword;
     await user.save();
+
+    console.log('✅ Password changed successfully for:', req.user._id);
 
     res.json({
       success: true,
       message: 'Password changed successfully'
     });
   } catch (error) {
-    console.error('Change password error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('❌ Change password error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error',
+      ...(process.env.NODE_ENV === 'development' && { debug: error.message })
+    });
   }
 });
 

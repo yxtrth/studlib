@@ -13,25 +13,23 @@
             
             try {
                 // Test health endpoint
-                const response = await fetch('http://localhost:5000/api/health');
+                const response = await fetch('http://localhost:5003/api/test');
                 const data = await response.json();
                 
                 results.innerHTML = `
                     <h2>✅ Backend Connection Successful!</h2>
-                    <p><strong>Status:</strong> ${data.status}</p>
-                    <p><strong>Database:</strong> ${data.database}</p>
                     <p><strong>Message:</strong> ${data.message}</p>
-                    <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                    <p><strong>Server Status:</strong> Running on port 5003</p>
                     <hr>
-                    <h3>Test Registration Endpoint:</h3>
-                    <button onclick="testRegister()">Test Register API</button>
+                    <h3>Basic connection test passed!</h3>
+                    <p>The minimal server is working. You can now test the full backend.</p>
                 `;
             } catch (error) {
                 results.innerHTML = `
                     <h2>❌ Backend Connection Failed!</h2>
                     <p><strong>Error:</strong> ${error.message}</p>
-                    <p>Make sure the backend server is running on port 5000</p>
-                    <p>Run: <code>cd backend && npm run dev</code></p>
+                    <p>Make sure the backend server is running on port 5003</p>
+                    <p>Run: <code>cd backend && node minimal-server.js</code></p>
                 `;
             }
         }
@@ -46,7 +44,7 @@
                     department: 'Computer Science'
                 };
                 
-                const response = await fetch('http://localhost:5000/api/auth/register', {
+                const response = await fetch('http://localhost:8080/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Backend Test</title>
+</head>
+<body>
+    <h1>Minimal Backend Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            try {
+                console.log('Testing connection to http://localhost:3000/api/health');
+                const response = await fetch('http://localhost:3000/api/health');
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <h2 style="color: green;">✅ Connection Successful!</h2>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                console.error('Connection error:', error);
+                resultDiv.innerHTML = `
+                    <h2 style="color: red;">❌ Connection Failed</h2>
+                    <p>Error: ${error.message}</p>
+                    <p>Check the console for more details.</p>
+                `;
+            }
+        }
+
+        // Test on page load
+        testConnection();
+    </script>
+</body>
+</html>

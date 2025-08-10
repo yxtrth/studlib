@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-section { 
+            background: white; 
+            margin: 15px 0; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { background-color: #d4edda; border-left: 4px solid #28a745; }
+        .error { background-color: #f8d7da; border-left: 4px solid #dc3545; }
+        .info { background-color: #d1ecf1; border-left: 4px solid #17a2b8; }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        input { 
+            padding: 8px; 
+            margin: 5px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+            width: 100%; 
+            max-width: 300px;
+        }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        pre { 
+            background: #f8f9fa; 
+            padding: 10px; 
+            border-radius: 4px; 
+            overflow-x: auto; 
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .test-endpoints {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .endpoint-btn {
+            background: #6c757d;
+            padding: 8px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Sign Up Debug Tool</h1>
+        
+        <!-- Test Different Endpoints -->
+        <div class="form-section">
+            <h3>1. 🔍 Test Available Endpoints</h3>
+            <div class="test-endpoints">
+                <button class="endpoint-btn" onclick="testEndpoint('http://localhost:5003/api/health')">Test Health (5003)</button>
+                <button class="endpoint-btn" onclick="testEndpoint('https://student-library-backend-o116.onrender.com/api/health')">Test Production Health</button>
+                <button class="endpoint-btn" onclick="testEndpoint('http://localhost:5003/api/test')">Test Local API</button>
+                <button class="endpoint-btn" onclick="testEndpoint('https://student-library-backend-o116.onrender.com/api/test')">Test Production API</button>
+            </div>
+            <div id="endpoint-results"></div>
+        </div>
+
+        <!-- Local Sign Up Test -->
+        <div class="form-section">
+            <h3>2. 🏠 Local Server Sign Up Test</h3>
+            <form id="local-signup-form">
+                <label>Name:</label>
+                <input type="text" id="local-name" value="Test User" required>
+                
+                <label>Email:</label>
+                <input type="email" id="local-email" value="test@example.com" required>
+                
+                <label>Password:</label>
+                <input type="password" id="local-password" value="password123" required>
+                
+                <button type="button" onclick="testLocalSignup()">Test Local Signup</button>
+            </form>
+            <div id="local-signup-result"></div>
+        </div>
+
+        <!-- Production Sign Up Test -->
+        <div class="form-section">
+            <h3>3. 🌐 Production Server Sign Up Test</h3>
+            <form id="prod-signup-form">
+                <label>Name:</label>
+                <input type="text" id="prod-name" value="Test User" required>
+                
+                <label>Email:</label>
+                <input type="email" id="prod-email" value="test@example.com" required>
+                
+                <label>Password:</label>
+                <input type="password" id="prod-password" value="password123" required>
+                
+                <button type="button" onclick="testProductionSignup()">Test Production Signup</button>
+            </form>
+            <div id="prod-signup-result"></div>
+        </div>
+
+        <!-- Validation Test -->
+        <div class="form-section">
+            <h3>4. ✅ Validation Test</h3>
+            <button onclick="testValidation()">Test Different Validation Scenarios</button>
+            <div id="validation-result"></div>
+        </div>
+
+        <!-- Raw API Test -->
+        <div class="form-section">
+            <h3>5. 🧪 Raw API Test</h3>
+            <textarea id="raw-json" style="width: 100%; height: 100px;" placeholder="Enter JSON data here">
+{
+  "name": "Test User",
+  "email": "test@example.com", 
+  "password": "password123"
+}</textarea>
+            <br>
+            <input type="text" id="raw-url" placeholder="API URL" value="http://localhost:5003/api/auth/register" style="width: 100%;">
+            <br>
+            <button onclick="testRawAPI()">Send Raw Request</button>
+            <div id="raw-result"></div>
+        </div>
+    </div>
+
+    <script>
+        async function makeRequest(url, options = {}) {
+            try {
+                console.log('Making request to:', url);
+                console.log('Options:', options);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                return { 
+                    success: response.ok, 
+                    status: response.status, 
+                    data,
+                    headers: Object.fromEntries(response.headers.entries())
+                };
+            } catch (error) {
+                console.error('Request error:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        function displayResult(elementId, result, title = '') {
+            const element = document.getElementById(elementId);
+            const isSuccess = result.success;
+            
+            element.innerHTML = `
+                <div class="${isSuccess ? 'success' : 'error'}" style="margin-top: 10px;">
+                    <h4>${title} ${isSuccess ? '✅' : '❌'}</h4>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        async function testEndpoint(url) {
+            const result = await makeRequest(url);
+            displayResult('endpoint-results', result, `Endpoint Test: ${url}`);
+        }
+
+        async function testLocalSignup() {
+            const name = document.getElementById('local-name').value;
+            const email = document.getElementById('local-email').value;
+            const password = document.getElementById('local-password').value;
+            
+            const result = await makeRequest('http://localhost:5003/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password })
+            });
+            
+            displayResult('local-signup-result', result, 'Local Signup');
+        }
+
+        async function testProductionSignup() {
+            const name = document.getElementById('prod-name').value;
+            const email = document.getElementById('prod-email').value;
+            const password = document.getElementById('prod-password').value;
+            
+            const result = await makeRequest('https://student-library-backend-o116.onrender.com/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password })
+            });
+            
+            displayResult('prod-signup-result', result, 'Production Signup');
+        }
+
+        async function testValidation() {
+            const testCases = [
+                {
+                    name: "Valid Data",
+                    data: { name: "John Doe", email: "john@example.com", password: "password123" }
+                },
+                {
+                    name: "Short Name",
+                    data: { name: "J", email: "john@example.com", password: "password123" }
+                },
+                {
+                    name: "Invalid Email",
+                    data: { name: "John Doe", email: "invalid-email", password: "password123" }
+                },
+                {
+                    name: "Short Password",
+                    data: { name: "John Doe", email: "john@example.com", password: "123" }
+                },
+                {
+                    name: "Missing Fields",
+                    data: { name: "John Doe" }
+                }
+            ];
+
+            let results = [];
+            
+            for (let testCase of testCases) {
+                const result = await makeRequest('http://localhost:5003/api/auth/register', {
+                    method: 'POST',
+                    body: JSON.stringify(testCase.data)
+                });
+                
+                results.push({
+                    testCase: testCase.name,
+                    data: testCase.data,
+                    result: result
+                });
+            }
+            
+            displayResult('validation-result', { success: true, results }, 'Validation Tests');
+        }
+
+        async function testRawAPI() {
+            const url = document.getElementById('raw-url').value;
+            const jsonData = document.getElementById('raw-json').value;
+            
+            try {
+                const data = JSON.parse(jsonData);
+                const result = await makeRequest(url, {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                
+                displayResult('raw-result', result, 'Raw API Test');
+            } catch (error) {
+                displayResult('raw-result', { success: false, error: 'Invalid JSON: ' + error.message }, 'Raw API Test');
+            }
+        }
+
+        // Auto-test health on load
+        window.onload = function() {
+            testEndpoint('http://localhost:5003/api/health');
+        };
+    </script>
+</body>
+</html>

@@ -1,8 +1,11 @@
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 
+// Enable CORS for all origins
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/test', (req, res) => {

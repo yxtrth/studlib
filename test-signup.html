@@ -62,16 +62,26 @@
             resultDiv.innerHTML = 'Testing...';
             
             try {
-                const response = await fetch(`${API_URL}/health`);
+                const response = await fetch(`${API_URL}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Origin': window.location.origin
+                    }
+                });
+                
                 const data = await response.json();
                 
                 if (response.ok) {
                     resultDiv.innerHTML = `<span class="success">✅ Backend is healthy!</span><br>Response: ${JSON.stringify(data, null, 2)}`;
                 } else {
-                    resultDiv.innerHTML = `<span class="error">❌ Backend error: ${response.status}</span>`;
+                    resultDiv.innerHTML = `<span class="error">❌ Backend error: ${response.status}</span><br>
+                        Message: ${JSON.stringify(data, null, 2)}`;
                 }
             } catch (error) {
-                resultDiv.innerHTML = `<span class="error">❌ Connection failed: ${error.message}</span>`;
+                console.error('Health check error:', error);
+                resultDiv.innerHTML = `<span class="error">❌ Connection failed: ${error.message}</span><br>
+                    <small>Check the browser console for more details</small>`;
             }
         }
 
@@ -92,6 +102,8 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Origin': window.location.origin
                     },
                     body: JSON.stringify(userData)
                 });
@@ -107,7 +119,9 @@
                     }
                 }
             } catch (error) {
-                resultDiv.innerHTML = `<span class="error">❌ Request failed: ${error.message}</span>`;
+                console.error('Registration error:', error);
+                resultDiv.innerHTML = `<span class="error">❌ Request failed: ${error.message}</span><br>
+                    <small>Check the browser console for more details</small>`;
             }
         }
 
