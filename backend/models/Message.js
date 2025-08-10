@@ -9,7 +9,7 @@ const messageSchema = new mongoose.Schema({
   receiverId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: [true, 'Receiver ID is required']
+    required: false // Changed to false to allow room messages
   },
   message: {
     type: String,

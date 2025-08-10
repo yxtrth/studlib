@@ -437,20 +437,19 @@ router.get('/room/:roomId', protect, async (req, res) => {
 
     console.log(`Getting messages for room: ${roomId}, page: ${page}`);
 
-    // Create a simple room message structure using the Message model
-    // We'll use a special format where receiverId is the room name
+    // For room messages, we'll use a special approach
+    // Store room messages with a special conversationId and receiverId as null or a special room identifier
     const messages = await Message.find({
-      receiverId: roomId, // Use receiverId as room identifier
       conversationId: `room_${roomId}`, // Special conversation ID for rooms
       isDeleted: false
     })
       .populate('senderId', 'name avatar')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .skip((page - 1) * limit)
+      .lean(); // Use lean() for better performance
 
     const total = await Message.countDocuments({
-      receiverId: roomId,
       conversationId: `room_${roomId}`,
       isDeleted: false
     });
@@ -501,7 +500,7 @@ router.post('/room', [
     // Create room message
     const messageData = {
       senderId,
-      receiverId: room, // Use room name as receiverId
+      receiverId: null, // No specific receiver for room messages
       message,
       conversationId: `room_${room}`,
       messageType: 'text',
