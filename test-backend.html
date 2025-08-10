@@ -7,6 +7,22 @@
     <h1>Student Library Backend Test</h1>
     <div id="results"></div>
     
+    <button onclick="testRegister()">Test Local Registration</button>
+    <button onclick="testProduction()">Test Production Registration</button>
+    
+    <h3>🔧 MongoDB Connection String Found:</h3>
+    <p>Your MongoDB Atlas URI needs the database name added:</p>
+    <code>mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/student-library?retryWrites=true&w=majority&appName=YATHSDATABASE</code>
+    
+    <h3>📋 Fix Steps:</h3>
+    <ol>
+        <li>Go to Render dashboard</li>
+        <li>Update MONGODB_URI environment variable</li>
+        <li>Add "/student-library" before the "?" in your connection string</li>
+        <li>Redeploy your backend</li>
+        <li>Test with the button above</li>
+    </ol>
+    
     <script>
         async function testBackend() {
             const results = document.getElementById('results');
@@ -44,7 +60,7 @@
                     department: 'Computer Science'
                 };
                 
-                const response = await fetch('http://localhost:8080/api/auth/register', {
+                const response = await fetch('http://localhost:5003/api/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -61,6 +77,37 @@
                 }
             } catch (error) {
                 alert(`❌ Registration test failed: ${error.message}`);
+            }
+        }
+        
+        async function testProduction() {
+            try {
+                const testData = {
+                    name: 'Prod Test User',
+                    email: 'prodtest@test.com',
+                    password: 'test123',
+                    studentId: 'PROD001',
+                    department: 'Computer Science'
+                };
+                
+                // Replace with your actual Render URL
+                const response = await fetch('https://studlib-backend.onrender.com/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert('✅ Production registration working!');
+                } else {
+                    alert(`⚠️ Production error: ${result.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert(`❌ Production test failed: ${error.message}`);
             }
         }
         
