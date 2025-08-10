@@ -79,6 +79,35 @@ const VideoDetail = () => {
     }
   };
 
+  // Convert YouTube URL to embed format if needed
+  const getEmbedUrl = (url) => {
+    if (!url) return '';
+    
+    // If already an embed URL, return as is
+    if (url.includes('/embed/')) {
+      return url;
+    }
+    
+    // Convert watch URL to embed URL
+    if (url.includes('youtube.com/watch?v=')) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+    
+    // Convert youtu.be URL to embed URL
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+    
+    // Return original URL if not a YouTube URL
+    return url;
+  };
+
   const handlePlayPause = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -166,7 +195,7 @@ const VideoDetail = () => {
               <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
                 <iframe
                   className="absolute top-0 left-0 w-full h-full"
-                  src={currentVideo.url}
+                  src={getEmbedUrl(currentVideo.url)}
                   title={currentVideo.title}
                   frameBorder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
