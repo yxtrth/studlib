@@ -138,8 +138,8 @@ const Chat = () => {
     dispatch(clearMessages());
   };
 
-  const filteredMessages = messages.filter(message =>
-    message.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredMessages = (messages || []).filter(message =>
+    message.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     message.sender?.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -165,6 +165,26 @@ const Chat = () => {
       return date.toLocaleDateString();
     }
   };
+
+  // Debug: Log current state
+  console.log('Chat Component Debug:', {
+    user: user ? { id: user.id, name: user.name } : 'No user',
+    socket: socket ? 'Connected' : 'Not connected',
+    messages: messages?.length || 0,
+    isLoading,
+    selectedRoom
+  });
+
+  // Early return for debugging
+  if (!user) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+          <strong>Debug:</strong> No user found. Please make sure you're logged in.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -250,6 +270,11 @@ const Chat = () => {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {/* Debug Info */}
+            <div className="bg-blue-50 p-2 text-xs text-blue-800 rounded">
+              Debug: {messages?.length || 0} messages, {filteredMessages.length} filtered, Room: {selectedRoom}, Socket: {socket ? 'Connected' : 'Disconnected'}
+            </div>
+            
             {isLoading ? (
               <div className="flex justify-center">
                 <LoadingSpinner size="medium" />

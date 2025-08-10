@@ -31,7 +31,13 @@ const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       // Initialize socket connection
-      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+      // Remove /api from the URL for Socket.IO connection
+      const socketURL = process.env.REACT_APP_API_URL 
+        ? process.env.REACT_APP_API_URL.replace('/api', '')
+        : 'http://localhost:5000';
+      
+      console.log('Connecting to socket at:', socketURL);
+      const newSocket = io(socketURL, {
         auth: {
           userId: user.id
         }

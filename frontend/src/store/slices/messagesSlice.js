@@ -34,11 +34,20 @@ export const fetchConversations = createAsyncThunk(
 
 export const fetchMessages = createAsyncThunk(
   'messages/fetchMessages',
-  async ({ userId, page = 1 }, { rejectWithValue }) => {
+  async ({ userId, room, page = 1 }, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/messages/${userId}`, {
-        params: { page }
-      });
+      let response;
+      if (room) {
+        // Room-based messaging
+        response = await axios.get(`/messages/room/${room}`, {
+          params: { page }
+        });
+      } else {
+        // User-to-user messaging
+        response = await axios.get(`/messages/${userId}`, {
+          params: { page }
+        });
+      }
       return response.data;
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to fetch messages';
@@ -51,18 +60,28 @@ export const sendMessage = createAsyncThunk(
   'messages/sendMessage',
   async (messageData, { rejectWithValue }) => {
     try {
-      const formData = new FormData();
-      Object.keys(messageData).forEach(key => {
-        if (messageData[key] !== undefined && messageData[key] !== null) {
-          formData.append(key, messageData[key]);
-        }
-      });
+      let response;
+      if (messageData.room) {
+        // Room-based message
+        response = await axios.post('/messages/room', {
+          room: messageData.room,
+          message: messageData.message
+        });
+      } else {
+        // User-to-user message
+        const formData = new FormData();
+        Object.keys(messageData).forEach(key => {
+          if (messageData[key] !== undefined && messageData[key] !== null) {
+            formData.append(key, messageData[key]);
+          }
+        });
 
-      const response = await axios.post('/messages', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+        response = await axios.post('/messages', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
       return response.data.message;
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Failed to send message';

@@ -425,4 +425,102 @@ router.get('/unread/count', protect, async (req, res) => {
   }
 });
 
+// Room-based messaging endpoints for chat feature
+
+// @desc    Get messages for a specific room
+// @route   GET /api/messages/room/:roomId
+// @access  Private
+router.get('/room/:roomId', protect, async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const { page = 1, limit = 50 } = req.query;
+
+    // Create a simple room message structure using the Message model
+    // We'll use a special format where receiverId is the room name
+    const messages = await Message.find({
+      receiverId: roomId, // Use receiverId as room identifier
+      conversationId: `room_${roomId}`, // Special conversation ID for rooms
+      isDeleted: false
+    })
+      .populate('senderId', 'name avatar')
+      .sort({ createdAt: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
+
+    const total = await Message.countDocuments({
+      receiverId: roomId,
+      conversationId: `room_${roomId}`,
+      isDeleted: false
+    });
+
+    res.json({
+      success: true,
+      messages: messages.reverse(), // Show oldest first
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      total,
+      room: roomId
+    });
+  } catch (error) {
+    console.error('Get room messages error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Send message to a room
+// @route   POST /api/messages/room
+// @access  Private
+router.post('/room', [
+  protect,
+  body('room')
+    .notEmpty()
+    .withMessage('Room ID is required'),
+  body('message')
+    .notEmpty()
+    .withMessage('Message content is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { room, message } = req.body;
+    const senderId = req.user._id;
+
+    // Create room message
+    const messageData = {
+      senderId,
+      receiverId: room, // Use room name as receiverId
+      message,
+      conversationId: `room_${room}`,
+      messageType: 'text',
+      isRead: true // Room messages are always "read"
+    };
+
+    const newMessage = await Message.create(messageData);
+    await newMessage.populate('senderId', 'name avatar');
+
+    // Emit real-time message via Socket.IO
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('room-message', {
+        room,
+        message: newMessage
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: newMessage
+    });
+  } catch (error) {
+    console.error('Send room message error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;
