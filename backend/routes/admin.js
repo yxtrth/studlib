@@ -563,7 +563,55 @@ router.post('/fix-urls', async (req, res) => {
   try {
     console.log('🔧 Fixing URLs for all books and videos...');
     
-    // Get all books and update them with open source URLs
+    // Get all videos and convert YouTube URLs to embed format
+    const videos = await Video.find({});
+    console.log(`Found ${videos.length} videos to update`);
+    
+    let videoUpdates = 0;
+    for (let video of videos) {
+      let needsUpdate = false;
+      let newUrl = video.url;
+      
+      // Convert YouTube watch URLs to embed URLs
+      if (video.url && video.url.includes('youtube.com/watch?v=')) {
+        const videoId = video.url.split('v=')[1]?.split('&')[0];
+        if (videoId) {
+          newUrl = `https://www.youtube.com/embed/${videoId}`;
+          needsUpdate = true;
+        }
+      }
+      // If URL is missing, add a default educational video
+      else if (!video.url || video.url.trim() === '') {
+        const defaultVideoIds = [
+          'RGOj5yH7evk', // Git and GitHub for Beginners
+          'SWYqp7iY_Tc', // Git & GitHub Crash Course
+          'hdI2bqOjy3c', // JavaScript for Beginners
+          'PkZNo7MFNFg', // Learn JavaScript - Full Course
+          'Ke90Tje7VS0', // React Course - Beginner's Tutorial
+          'nTeuhbP7wdE', // React Tutorial for Beginners
+          '0riHps91AzE', // Node.js Tutorial for Beginners
+          'TlB_eWDSMt4', // Node.js Full Course
+          '9OPP_1eAENg', // MySQL Tutorial for Beginners
+          'HXV3zeQKqGY', // SQL - Full Database Course
+          'ER9SspLe4Hg', // Python for Everybody - Full Course
+          'rfscVS0vtbw', // Learn Python - Full Course
+          'WGJJIrtnfpk', // C Programming Tutorial
+          'KJgsSFOSQv0', // C Programming Full Course
+          'vLnPwxZdW4Y'  // C++ Tutorial for Beginners
+        ];
+        const randomVideoId = defaultVideoIds[videoUpdates % defaultVideoIds.length];
+        newUrl = `https://www.youtube.com/embed/${randomVideoId}`;
+        needsUpdate = true;
+      }
+      
+      if (needsUpdate) {
+        await Video.findByIdAndUpdate(video._id, { url: newUrl });
+        videoUpdates++;
+        console.log(`✅ Updated video: ${video.title} -> ${newUrl}`);
+      }
+    }
+    
+    // Get all books and add URLs if missing
     const books = await Book.find({});
     console.log(`Found ${books.length} books to update`);
     
@@ -588,53 +636,15 @@ router.post('/fix-urls', async (req, res) => {
 
     let bookUpdates = 0;
     for (let i = 0; i < books.length; i++) {
-      const urlIndex = i % openSourceBookUrls.length;
-      const result = await Book.findByIdAndUpdate(books[i]._id, {
-        'pdfFile.url': openSourceBookUrls[urlIndex]
-      });
-      if (result) {
+      const book = books[i];
+      // Only update if pdfFile.url is missing or empty
+      if (!book.pdfFile?.url || book.pdfFile.url.trim() === '') {
+        const urlIndex = i % openSourceBookUrls.length;
+        await Book.findByIdAndUpdate(book._id, {
+          'pdfFile.url': openSourceBookUrls[urlIndex]
+        });
         bookUpdates++;
-        console.log(`✅ Updated book: ${books[i].title}`);
-      }
-    }
-    
-    // Get all videos and update them with YouTube URLs
-    const videos = await Video.find({});
-    console.log(`Found ${videos.length} videos to update`);
-    
-    // Educational YouTube video URLs
-    const youtubeVideoUrls = [
-      "https://www.youtube.com/embed/RGOj5yH7evk", // Git and GitHub for Beginners
-      "https://www.youtube.com/embed/SWYqp7iY_Tc", // Git & GitHub Crash Course
-      "https://www.youtube.com/embed/fJtyf62yAb8", // JavaScript for Beginners
-      "https://www.youtube.com/embed/PkZNo7MFNFg", // Learn JavaScript - Full Course
-      "https://www.youtube.com/embed/Ke90Tje7VS0", // React Course - Beginner's Tutorial
-      "https://www.youtube.com/embed/nTeuhbP7wdE", // React Tutorial for Beginners
-      "https://www.youtube.com/embed/0riHps91AzE", // Node.js Tutorial for Beginners
-      "https://www.youtube.com/embed/TlB_eWDSMt4", // Node.js Full Course
-      "https://www.youtube.com/embed/9OPP_1eAENg", // MySQL Tutorial for Beginners
-      "https://www.youtube.com/embed/HXV3zeQKqGY", // SQL - Full Database Course
-      "https://www.youtube.com/embed/ER9SspLe4Hg", // Python for Everybody - Full Course
-      "https://www.youtube.com/embed/rfscVS0vtbw", // Learn Python - Full Course
-      "https://www.youtube.com/embed/WGJJIrtnfpk", // C Programming Tutorial
-      "https://www.youtube.com/embed/KJgsSFOSQv0", // C Programming Full Course
-      "https://www.youtube.com/embed/vLnPwxZdW4Y", // C++ Tutorial for Beginners
-      "https://www.youtube.com/embed/YYXdXT2l-Gg", // Python Tutorial
-      "https://www.youtube.com/embed/hdI2bqOjy3c", // JavaScript Crash Course
-      "https://www.youtube.com/embed/ukzFI9rgwfU", // Machine Learning
-      "https://www.youtube.com/embed/ztHopE5Wnpc", // Database Design
-      "https://www.youtube.com/embed/UB1O30fR-EE"  // Web Development
-    ];
-
-    let videoUpdates = 0;
-    for (let i = 0; i < videos.length; i++) {
-      const urlIndex = i % youtubeVideoUrls.length;
-      const result = await Video.findByIdAndUpdate(videos[i]._id, {
-        'url': youtubeVideoUrls[urlIndex]
-      });
-      if (result) {
-        videoUpdates++;
-        console.log(`✅ Updated video: ${videos[i].title}`);
+        console.log(`✅ Updated book: ${book.title} -> ${openSourceBookUrls[urlIndex]}`);
       }
     }
 
