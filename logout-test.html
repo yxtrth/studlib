@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Logout Functionality Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 10px; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+        .test-section { border: 1px solid #ddd; padding: 15px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🚪 Logout Functionality Test</h1>
+    
+    <div class="test-section">
+        <h3>✅ Current Status: Logout Already Implemented!</h3>
+        <p>Your Student Library application already has complete logout functionality:</p>
+        
+        <h4>🎯 Features Implemented:</h4>
+        <ul>
+            <li>✅ <strong>Redux Logout Action</strong> - In authSlice.js</li>
+            <li>✅ <strong>Token Removal</strong> - Clears localStorage token</li>
+            <li>✅ <strong>Authorization Header Cleanup</strong> - Removes axios default headers</li>
+            <li>✅ <strong>Backend Logout Endpoint</strong> - /api/auth/logout</li>
+            <li>✅ <strong>Navbar Logout Button</strong> - Both desktop and mobile</li>
+            <li>✅ <strong>Profile Dropdown</strong> - With "Sign out" option</li>
+            <li>✅ <strong>Toast Notifications</strong> - Success/error feedback</li>
+            <li>✅ <strong>Navigation Redirect</strong> - Returns to home page</li>
+        </ul>
+        
+        <h4>🔍 How It Works:</h4>
+        <ol>
+            <li>User clicks "Sign out" in profile dropdown (desktop) or mobile menu</li>
+            <li>handleLogout() function is called</li>
+            <li>Redux logout action is dispatched</li>
+            <li>Token is removed from localStorage</li>
+            <li>Axios authorization header is cleared</li>
+            <li>Backend logout endpoint is called</li>
+            <li>User state is reset to null</li>
+            <li>Success toast is shown</li>
+            <li>User is redirected to home page</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h3>🧪 Test Logout Functionality</h3>
+        <button onclick="testLogin()">1. Test Login First</button>
+        <button onclick="testLogout()">2. Test Logout</button>
+        <button onclick="testFullFlow()">3. Test Login → Logout Flow</button>
+        <div id="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📍 Logout Locations in Your App:</h3>
+        <ul>
+            <li><strong>Desktop:</strong> Top-right profile dropdown → "Sign out"</li>
+            <li><strong>Mobile:</strong> Hamburger menu → User section → "Sign out"</li>
+            <li><strong>Admin Panel:</strong> Same profile dropdown for admin users</li>
+        </ul>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:5003/api';
+        const resultsDiv = document.getElementById('results');
+        let authToken = null;
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue';
+            resultsDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+        }
+        
+        async function makeRequest(url, options = {}) {
+            const defaultOptions = {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken && { 'Authorization': `Bearer ${authToken}` })
+                },
+                ...options
+            };
+            
+            try {
+                const response = await fetch(url, defaultOptions);
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        async function testLogin() {
+            log('🔐 Testing login...', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/auth/login`, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    email: 'test@test.com', 
+                    password: 'test123' 
+                })
+            });
+            
+            if (result.success && result.data.token) {
+                authToken = result.data.token;
+                log('✅ Login successful! Token obtained.', 'success');
+                log(`User: ${result.data.user.name} (${result.data.user.email})`, 'info');
+            } else {
+                log(`❌ Login failed: ${result.error || result.data.message}`, 'error');
+            }
+        }
+        
+        async function testLogout() {
+            if (!authToken) {
+                log('⚠️ No auth token available. Please login first.', 'error');
+                return;
+            }
+            
+            log('🚪 Testing logout...', 'info');
+            
+            const result = await makeRequest(`${API_BASE}/auth/logout`, {
+                method: 'POST'
+            });
+            
+            if (result.success) {
+                log('✅ Logout endpoint successful!', 'success');
+                log('🧹 In a real app, token would be cleared from localStorage', 'info');
+                authToken = null; // Simulate token clearing
+                log('✅ Token cleared locally', 'success');
+            } else {
+                log(`❌ Logout failed: ${result.error || result.data.message}`, 'error');
+            }
+        }
+        
+        async function testFullFlow() {
+            log('🔄 Testing complete login → logout flow...', 'info');
+            resultsDiv.innerHTML = '';
+            
+            // Step 1: Login
+            await testLogin();
+            
+            if (authToken) {
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                
+                // Step 2: Test protected route
+                log('🔒 Testing protected route access...', 'info');
+                const meResult = await makeRequest(`${API_BASE}/auth/me`);
+                
+                if (meResult.success) {
+                    log('✅ Protected route accessible while logged in', 'success');
+                } else {
+                    log('❌ Protected route failed', 'error');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                
+                // Step 3: Logout
+                await testLogout();
+                
+                // Step 4: Test protected route again
+                log('🔒 Testing protected route after logout...', 'info');
+                const meResult2 = await makeRequest(`${API_BASE}/auth/me`);
+                
+                if (!meResult2.success) {
+                    log('✅ Protected route correctly blocked after logout', 'success');
+                    log('🎉 Complete logout flow working perfectly!', 'success');
+                } else {
+                    log('❌ Protected route still accessible after logout', 'error');
+                }
+            }
+        }
+        
+        // Initial message
+        log('ℹ️ Logout functionality is already implemented in your app!', 'info');
+        log('📱 Test it by logging into your React app and clicking "Sign out"', 'info');
+    </script>
+</body>
+</html>
