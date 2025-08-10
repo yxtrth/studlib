@@ -31,10 +31,8 @@ const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated && user) {
       // Initialize socket connection
-      // Remove /api from the URL for Socket.IO connection
-      const socketURL = process.env.REACT_APP_API_URL 
-        ? process.env.REACT_APP_API_URL.replace('/api', '')
-        : 'http://localhost:5000';
+      // Use your actual backend URL
+      const socketURL = 'https://student-library-backend-o116.onrender.com';
       
       console.log('Connecting to socket at:', socketURL);
       const newSocket = io(socketURL, {

@@ -37,7 +37,9 @@ const Chat = () => {
   ];
 
   useEffect(() => {
-    if (socket && user) {
+    if (socket && socket.connected && user) {
+      console.log('Setting up socket listeners for room:', selectedRoom);
+      
       // Join the selected room
       socket.emit('join-room', { room: selectedRoom, user: user._id });
 
