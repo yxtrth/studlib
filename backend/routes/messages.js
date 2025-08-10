@@ -435,6 +435,8 @@ router.get('/room/:roomId', protect, async (req, res) => {
     const { roomId } = req.params;
     const { page = 1, limit = 50 } = req.query;
 
+    console.log(`Getting messages for room: ${roomId}, page: ${page}`);
+
     // Create a simple room message structure using the Message model
     // We'll use a special format where receiverId is the room name
     const messages = await Message.find({
@@ -453,6 +455,8 @@ router.get('/room/:roomId', protect, async (req, res) => {
       isDeleted: false
     });
 
+    console.log(`Found ${messages.length} messages for room ${roomId}`);
+
     res.json({
       success: true,
       messages: messages.reverse(), // Show oldest first
@@ -463,7 +467,10 @@ router.get('/room/:roomId', protect, async (req, res) => {
     });
   } catch (error) {
     console.error('Get room messages error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: 'Server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

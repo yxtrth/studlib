@@ -35,6 +35,7 @@ try {
   const allowedOrigins = [
     'http://localhost:3000',
     'https://inquisitive-kashata-b3ac7e.netlify.app',
+    'https://68990f82e394e984cfffb871--inquisitive-kashata-b3ac7e.netlify.app',
     process.env.CLIENT_URL,
     'http://localhost:5173',  // Added for local development with Vite
     'http://127.0.0.1:5500', // Added for VS Code Live Server
