@@ -60,7 +60,7 @@ const EmailVerification = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/verify-otp', {
+      const response = await fetch('https://student-library-backend-o116.onrender.com/api/auth/verify-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ const EmailVerification = () => {
     setIsResending(true);
 
     try {
-      const response = await fetch('/api/auth/resend-otp', {
+      const response = await fetch('https://student-library-backend-o116.onrender.com/api/auth/resend-otp', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -354,7 +354,9 @@ app.post('/api/auth/register', upload.single('avatar'), async (req, res) => {
         avatar: user.avatar,
         isEmailVerified: user.isEmailVerified
       },
-      requiresVerification: true
+      requiresVerification: true,
+      userId: user._id,
+      email: user.email
     });
     
   } catch (error) {
@@ -460,15 +462,15 @@ app.post('/api/auth/register-simple', async (req, res) => {
 
 // OTP verification endpoint
 app.post('/api/auth/verify-otp', async (req, res) => {
-  console.log('🔐 OTP verification attempt:', req.body.email);
+  console.log('🔐 OTP verification attempt:', req.body);
   
   try {
-    const { email, otp } = req.body;
+    const { userId, otp, email } = req.body;
     
-    if (!email || !otp) {
+    if ((!userId && !email) || !otp) {
       return res.status(400).json({
         success: false,
-        message: 'Email and OTP are required'
+        message: 'User ID (or email) and OTP are required'
       });
     }
     
@@ -479,12 +481,21 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       });
     }
     
-    // Find user with matching email and OTP
-    const user = await User.findOne({
-      email: email.toLowerCase(),
-      emailVerificationOTP: otp,
-      emailVerificationExpires: { $gt: new Date() }
-    });
+    // Find user by userId or email with matching OTP
+    let user;
+    if (userId) {
+      user = await User.findOne({
+        _id: userId,
+        emailVerificationOTP: otp,
+        emailVerificationExpires: { $gt: new Date() }
+      });
+    } else {
+      user = await User.findOne({
+        email: email.toLowerCase(),
+        emailVerificationOTP: otp,
+        emailVerificationExpires: { $gt: new Date() }
+      });
+    }
     
     if (!user) {
       return res.status(400).json({
@@ -520,6 +531,95 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error during verification',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Resend OTP endpoint
+app.post('/api/auth/resend-otp', async (req, res) => {
+  console.log('🔄 Resend OTP attempt:', req.body);
+  
+  try {
+    const { userId, email } = req.body;
+    
+    if (!userId && !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID or email is required'
+      });
+    }
+    
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not available'
+      });
+    }
+    
+    // Find user by userId or email
+    let user;
+    if (userId) {
+      user = await User.findById(userId);
+    } else {
+      user = await User.findOne({ email: email.toLowerCase() });
+    }
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+    
+    // Generate new OTP
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    
+    // Update user with new OTP
+    user.emailVerificationOTP = otp;
+    user.emailVerificationExpires = otpExpires;
+    await user.save();
+    
+    console.log('✅ New OTP generated, sending email...');
+    
+    // Send new OTP email
+    let emailSent = false;
+    try {
+      emailSent = await sendOTPEmail(user.email, otp, user.name);
+    } catch (emailError) {
+      console.log('⚠️  Email service not available during resend');
+    }
+    
+    if (!emailSent) {
+      console.log('⚠️  Email not sent, but OTP updated');
+      return res.status(200).json({
+        success: true,
+        message: 'New verification code generated (email service unavailable)',
+        emailSent: false
+      });
+    }
+    
+    console.log('✅ New OTP email sent successfully');
+    
+    res.status(200).json({
+      success: true,
+      message: 'New verification code sent to your email',
+      emailSent: true
+    });
+    
+  } catch (error) {
+    console.error('❌ Resend OTP error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during resend',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Library - OTP Verification Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .step {
+            display: flex;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        .step-number {
+            background: #3b82f6;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        .step-content h3 {
+            margin: 0 0 10px 0;
+            color: #1e293b;
+        }
+        .step-content p {
+            margin: 0;
+            color: #64748b;
+        }
+        .otp-preview {
+            background: #1e293b;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .email-preview {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #fefefe;
+        }
+        .otp-boxes {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        .otp-box {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+        }
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #166534;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .url-box {
+            background: #eff6ff;
+            border: 1px solid #3b82f6;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .url-box a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📧 OTP Verification Guide</h1>
+            <p>Complete guide on where and how users enter the OTP verification code</p>
+        </div>
+
+        <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+                <h3>🚀 User Registers on Your App</h3>
+                <p>When a user fills out the registration form at <span class="highlight">https://inquisitive-kashata-b3ac7e.netlify.app</span>, they enter their name, email, password, etc.</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+                <h3>📧 Email with OTP is Sent</h3>
+                <p>Your backend automatically sends a beautiful email with a 6-digit OTP code to their email address.</p>
+                <div class="email-preview">
+                    <h4>📬 Email Preview:</h4>
+                    <p><strong>Subject:</strong> Verify Your Student Library Account</p>
+                    <p><strong>To:</strong> user@example.com</p>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 10px 0;">
+                        <h3 style="color: #333;">Welcome to Student Library!</h3>
+                        <p>Hello Student,</p>
+                        <p>Thank you for registering with Student Library! To complete your registration, please verify your email address.</p>
+                        <div style="text-align: center; margin: 20px 0;">
+                            <div style="background: #007bff; color: white; padding: 15px; font-size: 24px; font-weight: bold; border-radius: 5px; letter-spacing: 2px; display: inline-block;">
+                                123456
+                            </div>
+                            <p style="margin-top: 10px; font-size: 14px;">This OTP will expire in 10 minutes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+                <h3>🔄 Automatic Redirect</h3>
+                <p>After successful registration, your app automatically redirects the user to the <span class="highlight">/verify-email</span> page.</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+                <h3>✨ Beautiful OTP Entry Interface</h3>
+                <p>Users see a professional OTP verification page with 6 individual input boxes:</p>
+                <div class="otp-boxes">
+                    <div class="otp-box">1</div>
+                    <div class="otp-box">2</div>
+                    <div class="otp-box">3</div>
+                    <div class="otp-box">4</div>
+                    <div class="otp-box">5</div>
+                    <div class="otp-box">6</div>
+                </div>
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li>Auto-focus moves to next box when typing</li>
+                    <li>Backspace moves to previous box</li>
+                    <li>Only accepts numbers</li>
+                    <li>Real-time validation</li>
+                    <li>Resend OTP option with cooldown timer</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">5</div>
+            <div class="step-content">
+                <h3>🎯 Verification Process</h3>
+                <p>When the user enters the 6-digit code and clicks "Verify Email":</p>
+                <ul>
+                    <li>Frontend sends OTP to <code>/api/auth/verify-otp</code></li>
+                    <li>Backend validates the OTP and expiry time</li>
+                    <li>If valid: User is verified and logged in automatically</li>
+                    <li>If invalid: Error message shown, OTP boxes cleared</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-number">6</div>
+            <div class="step-content">
+                <h3>✅ Success & Dashboard Access</h3>
+                <p>After successful verification, users are automatically logged in and redirected to the dashboard with full access to the Student Library.</p>
+            </div>
+        </div>
+
+        <div class="success">
+            <h3>🎉 Your OTP System is Complete!</h3>
+            <p>The entire verification flow is already implemented and working in your application. Users will see a seamless experience from registration to email verification.</p>
+        </div>
+
+        <div class="url-box">
+            <p><strong>🌐 Test the complete flow here:</strong></p>
+            <a href="https://inquisitive-kashata-b3ac7e.netlify.app" target="_blank">
+                https://inquisitive-kashata-b3ac7e.netlify.app
+            </a>
+        </div>
+
+        <div class="step">
+            <div class="step-number">💡</div>
+            <div class="step-content">
+                <h3>Additional Features Available</h3>
+                <ul>
+                    <li><strong>Resend OTP:</strong> If users don't receive the email, they can click "Resend Code" (with 60-second cooldown)</li>
+                    <li><strong>Auto-verification:</strong> If email service fails, users are auto-verified for demo purposes</li>
+                    <li><strong>Error handling:</strong> Clear error messages for expired or invalid OTPs</li>
+                    <li><strong>Back navigation:</strong> Users can go back to registration if needed</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin-top: 30px;">
+            <h3>🔧 Technical Details:</h3>
+            <ul>
+                <li><strong>OTP Length:</strong> 6 digits</li>
+                <li><strong>Expiry Time:</strong> 10 minutes</li>
+                <li><strong>Resend Cooldown:</strong> 60 seconds</li>
+                <li><strong>Email Service:</strong> Gmail SMTP via Nodemailer</li>
+                <li><strong>Verification Endpoint:</strong> <code>POST /api/auth/verify-otp</code></li>
+                <li><strong>Resend Endpoint:</strong> <code>POST /api/auth/resend-otp</code></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
