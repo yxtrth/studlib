@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Page Issue Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .code {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            overflow-x: auto;
+        }
+        .url {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .url a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 OTP Verification Page Issue - Diagnostic Guide</h1>
+    
+    <div class="step warning">
+        <h3>🎯 Problem: OTP verification page not showing after registration</h3>
+        <p>You register successfully but don't see the page to enter the OTP code from your email.</p>
+    </div>
+
+    <div class="step">
+        <h3>📋 Step 1: Test Registration Manually</h3>
+        <p>Go to your live app and try to register:</p>
+        <div class="url">
+            <a href="https://inquisitive-kashata-b3ac7e.netlify.app/register" target="_blank">
+                🌐 Test Registration Here
+            </a>
+        </div>
+        <p><strong>What to watch for:</strong></p>
+        <ul>
+            <li>Fill out ALL required fields (name, email, password)</li>
+            <li>Use a real email address you can check</li>
+            <li>Watch the browser console for errors (F12 → Console tab)</li>
+            <li>See if you get redirected after clicking "Register"</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>🔍 Step 2: Check Browser Console</h3>
+        <p>Open browser developer tools and look for:</p>
+        <div class="code">
+Press F12 → Go to Console tab → Look for:
+❌ Red error messages
+❌ Network request failures  
+❌ JavaScript errors
+❌ Navigation errors
+        </div>
+        <p><strong>Common errors to look for:</strong></p>
+        <ul>
+            <li>"Failed to fetch" - Network issue</li>
+            <li>"Cannot read property" - JavaScript error</li>
+            <li>"404 Not Found" - Route not found</li>
+            <li>"CORS error" - Backend connection issue</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>📱 Step 3: Test Direct OTP Page Access</h3>
+        <p>Try accessing the OTP page directly:</p>
+        <div class="url">
+            <a href="https://inquisitive-kashata-b3ac7e.netlify.app/verify-email" target="_blank">
+                📧 Direct OTP Page Access
+            </a>
+        </div>
+        <p><strong>Expected results:</strong></p>
+        <ul>
+            <li>✅ Page loads → Route is configured correctly</li>
+            <li>❌ Page shows "Not Found" → Route configuration issue</li>
+            <li>❌ Redirects to /register → Missing userId/email data</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>🔧 Step 4: Check Network Tab</h3>
+        <p>During registration, check the Network tab:</p>
+        <div class="code">
+F12 → Network tab → Try registration → Look for:
+
+1. POST request to: /api/auth/register
+   Status: 200 or 201 (Success)
+   
+2. Response should contain:
+   {
+     "requiresVerification": true,
+     "userId": "...",
+     "email": "...",
+     "message": "Registration successful!"
+   }
+        </div>
+    </div>
+
+    <div class="step success">
+        <h3>✅ If Backend is Working (Status 200/201)</h3>
+        <p>The issue is in the frontend React code. Possible fixes:</p>
+        <ul>
+            <li><strong>Redux Issue:</strong> Check if authSlice is properly handling the response</li>
+            <li><strong>Navigation Issue:</strong> Check if navigate() function is being called</li>
+            <li><strong>Route Issue:</strong> Verify /verify-email route in App.js</li>
+            <li><strong>Component Issue:</strong> Check if EmailVerification component renders</li>
+        </ul>
+    </div>
+
+    <div class="step error">
+        <h3>❌ If Backend is Failing (Status 400/500)</h3>
+        <p>The issue is in the backend FormData handling:</p>
+        <ul>
+            <li><strong>Multer Issue:</strong> FormData not being parsed</li>
+            <li><strong>Missing Fields:</strong> Required fields not reaching backend</li>
+            <li><strong>CORS Issue:</strong> Request being blocked</li>
+            <li><strong>Endpoint Issue:</strong> Wrong URL or method</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>🎯 Quick Fixes to Try</h3>
+        <ol>
+            <li><strong>Clear Browser Cache:</strong> Hard refresh (Ctrl+F5)</li>
+            <li><strong>Try Different Browser:</strong> Test in incognito mode</li>
+            <li><strong>Check Email:</strong> Look for OTP in spam folder</li>
+            <li><strong>Wait 30 seconds:</strong> Backend might be cold starting</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h3>📊 What Should Happen (Normal Flow)</h3>
+        <ol>
+            <li>Fill registration form</li>
+            <li>Click "Register" button</li>
+            <li>Form submits to backend</li>
+            <li>Backend creates user and sends OTP email</li>
+            <li>Backend responds with requiresVerification: true</li>
+            <li>Frontend automatically redirects to /verify-email</li>
+            <li>OTP page shows 6 input boxes</li>
+            <li>User enters OTP from email</li>
+            <li>Gets logged in and redirected to dashboard</li>
+        </ol>
+    </div>
+
+    <div class="step warning">
+        <h3>🔍 Report Back</h3>
+        <p>After testing, tell me:</p>
+        <ul>
+            <li>What happens when you click "Register"?</li>
+            <li>Any error messages in browser console?</li>
+            <li>What's the status code in Network tab?</li>
+            <li>Does the direct OTP page URL work?</li>
+        </ul>
+        <p>This will help me identify exactly where the issue is!</p>
+    </div>
+
+    <script>
+        // Add some diagnostic info
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 OTP Diagnostic Page Loaded');
+            console.log('Frontend URL: https://inquisitive-kashata-b3ac7e.netlify.app');
+            console.log('Backend URL: https://student-library-backend-o116.onrender.com');
+            console.log('Direct OTP URL: https://inquisitive-kashata-b3ac7e.netlify.app/verify-email');
+        });
+    </script>
+</body>
+</html>
