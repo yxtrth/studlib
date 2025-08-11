@@ -100,29 +100,67 @@ mongoose.connect(process.env.MONGODB_URI)
     console.log('⚠️  Continuing without database...');
   });
 
-// Enhanced User Schema with email verification
+// Enhanced User Schema with email verification and roles
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  name: { 
+    type: String, 
+    required: [true, 'Name is required'],
+    trim: true,
+    minlength: [2, 'Name must be at least 2 characters long']
+  },
+  email: { 
+    type: String, 
+    required: [true, 'Email is required'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email']
+  },
+  password: { 
+    type: String, 
+    required: [true, 'Password is required'],
+    minlength: [6, 'Password must be at least 6 characters long'],
+    select: false // Don't return password by default
+  },
+  role: {
+    type: String,
+    enum: ['student', 'admin'],
+    default: 'student'
+  },
   isEmailVerified: { type: Boolean, default: false },
   emailVerificationOTP: String,
   emailVerificationExpires: Date,
   isInGlobalChat: { type: Boolean, default: false },
-  onlineStatus: { type: String, enum: ['online', 'offline'], default: 'offline' },
+  onlineStatus: { 
+    type: String, 
+    enum: ['online', 'offline'], 
+    default: 'offline' 
+  },
   avatar: {
     public_id: String,
     url: String
   },
-  createdAt: { type: Date, default: Date.now }
+  refreshToken: { 
+    type: String,
+    select: false // Don't return refresh token by default
+  },
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  },
+  lastLogin: {
+    type: Date
+  }
+}, {
+  timestamps: true // Adds updatedAt field automatically
 });
 
-// Hash password before saving
+// Hash password before saving with 12 rounds of salt
 UserSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   
   try {
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(12); // Increased security with 12 rounds
     this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
