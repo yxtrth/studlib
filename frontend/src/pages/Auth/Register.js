@@ -206,35 +206,24 @@ const Register = () => {
             {/* Student ID */}
             <div>
               <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">
-                Student ID
+                Student ID (Optional)
               </label>
               <input
-                {...register('studentId', {
-                  required: 'Student ID is required',
-                })}
+                {...register('studentId')}
                 type="text"
-                className={`input mt-1 ${
-                  errors.studentId ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
-                }`}
+                className="input mt-1"
                 placeholder="Enter your student ID"
               />
-              {errors.studentId && (
-                <p className="mt-1 text-sm text-red-600">{errors.studentId.message}</p>
-              )}
             </div>
 
             {/* Department */}
             <div>
               <label htmlFor="department" className="block text-sm font-medium text-gray-700">
-                Department
+                Department (Optional)
               </label>
               <select
-                {...register('department', {
-                  required: 'Department is required',
-                })}
-                className={`input mt-1 ${
-                  errors.department ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
-                }`}
+                {...register('department')}
+                className="input mt-1"
               >
                 <option value="">Select your department</option>
                 <option value="Computer Science">Computer Science</option>
@@ -248,9 +237,6 @@ const Register = () => {
                 <option value="Science">Science</option>
                 <option value="Other">Other</option>
               </select>
-              {errors.department && (
-                <p className="mt-1 text-sm text-red-600">{errors.department.message}</p>
-              )}
             </div>
 
             {/* Bio */}
