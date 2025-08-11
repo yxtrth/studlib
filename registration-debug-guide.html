@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Debug - Step by Step</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .code {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+        .url {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .url a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        h1 { color: #333; }
+        h3 { color: #495057; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Registration Redirect Issue - Debug Guide</h1>
+    
+    <div class="step error">
+        <h3>🎯 Current Problem</h3>
+        <p><strong>Issue:</strong> After clicking "Create Account", the form redirects back to the signup form instead of going to the OTP verification page.</p>
+        <p><strong>Expected:</strong> Registration → OTP Verification Page</p>
+        <p><strong>Actual:</strong> Registration → Back to Registration Form</p>
+    </div>
+
+    <div class="step">
+        <h3>📝 Step 1: Test Registration with Developer Tools</h3>
+        <div class="url">
+            <a href="https://inquisitive-kashata-b3ac7e.netlify.app/register" target="_blank">
+                🌐 Open Registration Page
+            </a>
+        </div>
+        
+        <p><strong>Before filling the form:</strong></p>
+        <ol>
+            <li>Press <strong>F12</strong> to open Developer Tools</li>
+            <li>Go to <strong>Network</strong> tab</li>
+            <li>Go to <strong>Console</strong> tab</li>
+            <li>Clear both tabs (click the clear button)</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h3>🧪 Step 2: Fill and Submit Form</h3>
+        <p>Fill out the registration form with these test values:</p>
+        <div class="code">Name: Test User Debug
+Email: your-real-email@example.com
+Password: testpassword123
+Student ID: DEBUG123
+Department: Computer Science
+Bio: Testing registration flow</div>
+        
+        <p><strong>Click "Create Account" and immediately watch:</strong></p>
+        <ul>
+            <li><strong>Network Tab:</strong> Look for POST request to /api/auth/register</li>
+            <li><strong>Console Tab:</strong> Look for any red error messages</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>🔍 Step 3: Analyze the Network Request</h3>
+        <p>In the Network tab, find the POST request to <code>/api/auth/register</code>:</p>
+        
+        <h4>Check the Response:</h4>
+        <div class="code">Expected Response (Status 201):
+{
+  "success": true,
+  "message": "Registration successful! Please check your email for verification code.",
+  "user": { ... },
+  "requiresVerification": true,
+  "userId": "...",
+  "email": "..."
+}</div>
+        
+        <h4>Check for Problems:</h4>
+        <ul>
+            <li><strong>Status 404:</strong> Backend deployment issue</li>
+            <li><strong>Status 400:</strong> Validation error (missing fields)</li>
+            <li><strong>Status 500:</strong> Server error</li>
+            <li><strong>No request:</strong> Frontend JavaScript error</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>🔍 Step 4: Check Console Errors</h3>
+        <p>In the Console tab, look for these types of errors:</p>
+        <div class="code">Common JavaScript Errors:
+❌ "Uncaught TypeError: Cannot read property..."
+❌ "Failed to fetch"
+❌ "Network Error"
+❌ "CORS error"
+❌ "navigate is not a function"
+❌ "Cannot read property 'requiresVerification'"</div>
+    </div>
+
+    <div class="step warning">
+        <h3>🔧 Step 5: Possible Causes & Solutions</h3>
+        
+        <h4>Issue A: Backend Not Returning requiresVerification</h4>
+        <p><strong>Symptom:</strong> Request succeeds but response is missing <code>requiresVerification: true</code></p>
+        <p><strong>Solution:</strong> Backend issue - email service might be auto-verifying users</p>
+        
+        <h4>Issue B: Frontend Redux Not Handling Response</h4>
+        <p><strong>Symptom:</strong> Request succeeds, response looks correct, but no redirect</p>
+        <p><strong>Solution:</strong> React/Redux navigation issue</p>
+        
+        <h4>Issue C: JavaScript Error Breaking Navigation</h4>
+        <p><strong>Symptom:</strong> Console shows red errors after form submission</p>
+        <p><strong>Solution:</strong> Fix JavaScript error in Register component</p>
+        
+        <h4>Issue D: Form Validation Error</h4>
+        <p><strong>Symptom:</strong> Form submits but backend returns 400 error</p>
+        <p><strong>Solution:</strong> Check required fields are filled correctly</p>
+    </div>
+
+    <div class="step">
+        <h3>🎯 Step 6: Quick Tests</h3>
+        
+        <h4>Test A: Direct OTP Page</h4>
+        <div class="url">
+            <a href="https://inquisitive-kashata-b3ac7e.netlify.app/verify-email" target="_blank">
+                📧 Test OTP Page Directly
+            </a>
+        </div>
+        <p>If this page loads → Route exists. If not → Route configuration issue.</p>
+        
+        <h4>Test B: Backend Health</h4>
+        <div class="url">
+            <a href="https://student-library-backend-o116.onrender.com/api/health" target="_blank">
+                ❤️ Test Backend Health
+            </a>
+        </div>
+        <p>Should return JSON with database status.</p>
+        
+        <h4>Test C: Clear Cache</h4>
+        <p>Hard refresh: <strong>Ctrl+F5</strong> or try <strong>incognito mode</strong></p>
+    </div>
+
+    <div class="step success">
+        <h3>📊 Step 7: Report Your Findings</h3>
+        <p>After testing, tell me:</p>
+        <ol>
+            <li><strong>Network Request:</strong> What status code do you see?</li>
+            <li><strong>Response Data:</strong> Does it contain <code>requiresVerification: true</code>?</li>
+            <li><strong>Console Errors:</strong> Any red error messages?</li>
+            <li><strong>Direct OTP Page:</strong> Does it load or show "Not Found"?</li>
+            <li><strong>Form Behavior:</strong> Does it stay on the same page or redirect somewhere else?</li>
+        </ol>
+        <p>This will help me identify the exact cause and fix it!</p>
+    </div>
+
+    <div class="step">
+        <h3>🚀 Expected Flow (When Working)</h3>
+        <ol>
+            <li>Fill registration form</li>
+            <li>Click "Create Account"</li>
+            <li>Form submits POST to /api/auth/register</li>
+            <li>Backend responds with <code>requiresVerification: true</code></li>
+            <li>React automatically navigates to /verify-email</li>
+            <li>OTP page shows 6 input boxes</li>
+            <li>Email arrives with verification code</li>
+        </ol>
+    </div>
+
+    <script>
+        console.log('🔍 Registration Debug Guide Loaded');
+        console.log('Test registration and watch Network + Console tabs');
+        console.log('Look for POST to /api/auth/register and any JavaScript errors');
+    </script>
+</body>
+</html>

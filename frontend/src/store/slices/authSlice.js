@@ -38,16 +38,30 @@ export const register = createAsyncThunk(
         };
       }
       
-      // Old flow for backward compatibility
-      const { token, user } = response.data;
+      // Check if user was auto-verified
+      if (response.data.autoVerified) {
+        return {
+          autoVerified: true,
+          user: response.data.user,
+          message: response.data.message
+        };
+      }
       
-      // Store token in localStorage
-      localStorage.setItem('token', token);
+      // Check if response contains token (direct login flow)
+      if (response.data.token) {
+        const { token, user } = response.data;
+        
+        // Store token in localStorage
+        localStorage.setItem('token', token);
+        
+        // Set default authorization header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        return { token, user };
+      }
       
-      // Set default authorization header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      return { token, user };
+      // Default case - just return the response data
+      return response.data;
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'Registration failed';
       return rejectWithValue(message);
@@ -217,11 +231,23 @@ const authSlice = createSlice({
           state.token = null;
           state.user = null;
           state.error = null;
-        } else {
-          // Old flow - direct login
+        } else if (action.payload.autoVerified) {
+          // User was auto-verified (email service unavailable)
+          state.isAuthenticated = false; // Don't auto-login, redirect to login page
+          state.token = null;
+          state.user = null;
+          state.error = null;
+        } else if (action.payload.token) {
+          // Direct login flow (old flow)
           state.isAuthenticated = true;
           state.token = action.payload.token;
           state.user = action.payload.user;
+          state.error = null;
+        } else {
+          // Unknown response format
+          state.isAuthenticated = false;
+          state.token = null;
+          state.user = null;
           state.error = null;
         }
       })

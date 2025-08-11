@@ -79,8 +79,15 @@ const Register = () => {
             email: result.email 
           } 
         });
-      } else {
+      } else if (result.autoVerified) {
+        toast.success('Registration successful! Account automatically verified. Please login.');
+        navigate('/login');
+      } else if (result.user) {
+        // Handle any other successful registration case
         toast.success('Registration successful! Please login.');
+        navigate('/login');
+      } else {
+        toast.error('Registration completed but response format unexpected. Please try logging in.');
         navigate('/login');
       }
     } catch (error) {
