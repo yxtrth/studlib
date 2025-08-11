@@ -144,7 +144,9 @@ app.use(cors({
     'https://inquisitive-kashata-b3ac7e.netlify.app',
     'http://localhost:5173',
     'http://127.0.0.1:5500',
-    'file://' // For local HTML files
+    'file://', // For local HTML files
+    /^https:\/\/.*--inquisitive-kashata-b3ac7e\.netlify\.app$/, // Netlify preview URLs
+    /^https:\/\/.*\.netlify\.app$/ // Any Netlify app
   ],
   credentials: true
 }));
