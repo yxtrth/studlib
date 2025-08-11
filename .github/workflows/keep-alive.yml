@@ -1,0 +1,88 @@
+name: Keep Backend Alive 24/7
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  keep-backend-alive:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Ping Backend to Keep Alive
+      run: |
+        echo "🔄 BACKEND KEEP-ALIVE SERVICE"
+        echo "============================="
+        echo "🕐 Current Time: $(date -u)"
+        echo "🎯 Target: Student Library Backend"
+        echo "🌐 URL: https://student-library-backend-o116.onrender.com"
+        echo ""
+        
+        echo "❤️ Pinging health endpoint..."
+        health_response=$(curl -s -w "%{http_code}" -o /tmp/health_response.txt https://student-library-backend-o116.onrender.com/api/health)
+        echo "Health endpoint response code: $health_response"
+        
+        if [ "$health_response" = "200" ]; then
+          echo "✅ Backend is alive and healthy!"
+          echo "Response:"
+          cat /tmp/health_response.txt
+        else
+          echo "⚠️ Backend might be starting up (code: $health_response)"
+          echo "This is normal for cold starts on Render free tier"
+        fi
+        
+        echo ""
+        echo "🔄 Backend keep-alive ping completed!"
+
+  test-endpoints:
+    runs-on: ubuntu-latest
+    needs: keep-backend-alive
+    if: always()
+    
+    strategy:
+      matrix:
+        endpoint: ['/api/health', '/api/auth/login', '/api/auth/register']
+      fail-fast: false
+    
+    steps:
+    - name: Test Endpoint
+      run: |
+        echo "🔗 Testing endpoint: ${{ matrix.endpoint }}"
+        
+        if [ "${{ matrix.endpoint }}" = "/api/health" ]; then
+          response_code=$(curl -s -w "%{http_code}" -o /dev/null \
+            https://student-library-backend-o116.onrender.com${{ matrix.endpoint }})
+        else
+          response_code=$(curl -s -w "%{http_code}" -o /dev/null \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            https://student-library-backend-o116.onrender.com${{ matrix.endpoint }})
+        fi
+        
+        echo "Response Code: $response_code"
+        
+        if [ "$response_code" = "400" ] || [ "$response_code" = "401" ] || [ "$response_code" = "200" ]; then
+          echo "✅ Endpoint ${{ matrix.endpoint }} is responding (code: $response_code)"
+        else
+          echo "⚠️ Unexpected response code: $response_code"
+        fi
+
+  log-status:
+    runs-on: ubuntu-latest
+    needs: [keep-backend-alive, test-endpoints]
+    if: always()
+    
+    steps:
+    - name: Log Keep-Alive Activity
+      run: |
+        echo "📊 KEEP-ALIVE SUMMARY"
+        echo "====================="
+        echo "🕐 Timestamp: $(date -u)"
+        echo "🎯 Target: Student Library Backend"
+        echo "🌐 URL: https://student-library-backend-o116.onrender.com"
+        echo "🔄 Action: Automated keep-alive ping"
+        echo "⚡ Status: Job completed"
+        echo ""
+        echo "🌟 Your backend stays warm and responsive!"

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration OTP Issue - Manual Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .url {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .url a {
+            color: #1976d2;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .code {
+            background: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        h1 { color: #333; }
+        h3 { color: #495057; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Registration → OTP Page Issue - Manual Test Guide</h1>
+    
+    <div class="step warning">
+        <h3>🎯 The Problem</h3>
+        <p>When you fill out the registration form and click "Create Account", you expect to be redirected to the OTP verification page, but it's not happening.</p>
+    </div>
+
+    <div class="step">
+        <h3>📝 Step 1: Test Registration</h3>
+        <p>Go to your registration page and follow these exact steps:</p>
+        <div class="url">
+            <a href="https://inquisitive-kashata-b3ac7e.netlify.app/register" target="_blank">
+                🌐 Open Registration Page
+            </a>
+        </div>
+        
+        <p><strong>Fill out the form with:</strong></p>
+        <ul>
+            <li><strong>Name:</strong> Test User</li>
+            <li><strong>Email:</strong> Use your real email address</li>
+            <li><strong>Password:</strong> testpassword123</li>
+            <li><strong>Student ID:</strong> TEST123</li>
+            <li><strong>Department:</strong> Computer Science</li>
+            <li><strong>Bio:</strong> Testing registration flow</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>🔍 Step 2: Monitor Browser Console</h3>
+        <p>Before clicking "Create Account", open browser developer tools:</p>
+        <div class="code">
+1. Press F12 (or right-click → Inspect)
+2. Go to "Console" tab
+3. Go to "Network" tab
+4. Keep these tabs open while registering
+        </div>
+    </div>
+
+    <div class="step">
+        <h3>🎯 Step 3: Click "Create Account" and Watch</h3>
+        <p>Now click the "Create Account" button and observe:</p>
+        
+        <h4>In the Network Tab:</h4>
+        <ul>
+            <li>Look for a POST request to <code>/api/auth/register</code></li>
+            <li>Check the status code (should be 200 or 201)</li>
+            <li>Check the response data</li>
+        </ul>
+        
+        <h4>In the Console Tab:</h4>
+        <ul>
+            <li>Look for any red error messages</li>
+            <li>Look for JavaScript errors</li>
+            <li>Look for navigation/routing errors</li>
+        </ul>
+    </div>
+
+    <div class="step success">
+        <h3>✅ What Should Happen</h3>
+        <p>If everything works correctly:</p>
+        <ol>
+            <li>Network tab shows POST to /api/auth/register with status 201</li>
+            <li>Response contains: <code>"requiresVerification": true</code></li>
+            <li>Page automatically redirects to: <code>/verify-email</code></li>
+            <li>You see 6 input boxes for OTP entry</li>
+            <li>You receive an email with a 6-digit code</li>
+        </ol>
+    </div>
+
+    <div class="step error">
+        <h3>❌ Common Issues and Solutions</h3>
+        
+        <h4>If you see "Route not found" error:</h4>
+        <ul>
+            <li>Backend deployment issue - wait 5 minutes and try again</li>
+            <li>Clear browser cache (Ctrl+F5)</li>
+        </ul>
+        
+        <h4>If registration succeeds but no redirect:</h4>
+        <ul>
+            <li>Check Console tab for JavaScript errors</li>
+            <li>Check if response contains <code>requiresVerification: true</code></li>
+            <li>Frontend navigation issue</li>
+        </ul>
+        
+        <h4>If page stays on registration form:</h4>
+        <ul>
+            <li>Check Network tab for failed requests</li>
+            <li>Look for CORS errors in console</li>
+            <li>Try in incognito mode</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>🧪 Step 4: Test Direct OTP Page Access</h3>
+        <p>Try accessing the OTP page directly to see if the route exists:</p>
+        <div class="url">
+            <a href="https://inquisitive-kashata-b3ac7e.netlify.app/verify-email" target="_blank">
+                📧 Direct OTP Page Test
+            </a>
+        </div>
+        <p><strong>Expected behavior:</strong></p>
+        <ul>
+            <li>✅ Page loads with 6 input boxes → Route is working</li>
+            <li>❌ "Page not found" → Route configuration issue</li>
+            <li>⚠️ Redirects back to register → Missing user data</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>📊 Step 5: Report Your Findings</h3>
+        <p>After testing, tell me:</p>
+        <ul>
+            <li>What happens when you click "Create Account"?</li>
+            <li>Any error messages in the console?</li>
+            <li>What's the status code in the Network tab?</li>
+            <li>Does the response contain <code>requiresVerification: true</code>?</li>
+            <li>Does the direct OTP page URL work?</li>
+        </ul>
+    </div>
+
+    <div class="step warning">
+        <h3>⚡ Quick Fixes to Try First</h3>
+        <ol>
+            <li><strong>Hard refresh:</strong> Ctrl+F5 to clear cache</li>
+            <li><strong>Try incognito mode:</strong> Rules out browser cache issues</li>
+            <li><strong>Wait 2-3 minutes:</strong> Backend might still be deploying</li>
+            <li><strong>Use a different browser:</strong> Rules out browser-specific issues</li>
+        </ol>
+    </div>
+
+    <script>
+        console.log('🔍 OTP Registration Test Page Loaded');
+        console.log('Frontend: https://inquisitive-kashata-b3ac7e.netlify.app');
+        console.log('Backend: https://student-library-backend-o116.onrender.com');
+        console.log('Test registration and watch for redirect to /verify-email');
+    </script>
+</body>
+</html>
