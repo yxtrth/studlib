@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual OTP Registration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button:hover { background: #0056b3; }
+        .code {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        #results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Manual OTP Registration Test</h1>
+    
+    <div class="test-section warning">
+        <h3>⚠️ Current Issue</h3>
+        <p>Registration form submits successfully, but the OTP verification page doesn't appear.</p>
+        <p><strong>Expected:</strong> After clicking "Create Account" → Redirect to OTP page with 6 input boxes</p>
+        <p><strong>Actual:</strong> Stays on registration page or shows different behavior</p>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Step 1: Test Backend Directly</h3>
+        <p>First, let's test if the backend is returning the correct response:</p>
+        <button class="button" onclick="testBackendHealth()">Test Backend Health</button>
+        <button class="button" onclick="testRegistrationEndpoint()">Test Registration Endpoint</button>
+    </div>
+
+    <div class="test-section">
+        <h3>📱 Step 2: Test Your Live App</h3>
+        <p>Now test the actual registration on your live app:</p>
+        <a href="https://inquisitive-kashata-b3ac7e.netlify.app/register" target="_blank" class="button">Open Registration Page</a>
+        
+        <div class="code">
+<strong>Test Instructions:</strong>
+1. Fill out the registration form with:
+   - Name: Test User
+   - Email: YOUR_REAL_EMAIL@gmail.com
+   - Password: testpassword123
+   - Student ID: TEST123
+   - Department: Computer Science
+
+2. Before clicking "Create Account":
+   - Press F12 to open Developer Tools
+   - Go to "Network" tab
+   - Go to "Console" tab
+
+3. Click "Create Account" and watch:
+   - Network tab for POST to /api/auth/register
+   - Console tab for any errors
+   - Page behavior (does it redirect?)
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 Step 3: Test Direct OTP Page</h3>
+        <p>Test if the OTP page loads directly:</p>
+        <a href="https://inquisitive-kashata-b3ac7e.netlify.app/verify-email" target="_blank" class="button">Test OTP Page Direct</a>
+        
+        <p><strong>Expected behaviors:</strong></p>
+        <ul>
+            <li>✅ <strong>Good:</strong> Page loads with 6 input boxes (route works)</li>
+            <li>⚠️ <strong>Okay:</strong> Redirects to register page (missing user data, but route works)</li>
+            <li>❌ <strong>Bad:</strong> Shows "Page not found" (route configuration issue)</li>
+        </ul>
+    </div>
+
+    <div class="test-section success">
+        <h3>✅ What Should Happen (Normal Flow)</h3>
+        <ol>
+            <li><strong>Registration:</strong> Fill form and click "Create Account"</li>
+            <li><strong>Backend Response:</strong> Returns <code>{"requiresVerification": true, "userId": "...", "email": "..."}</code></li>
+            <li><strong>Frontend Action:</strong> Automatically redirects to <code>/verify-email</code></li>
+            <li><strong>OTP Page:</strong> Shows 6 input boxes for OTP entry</li>
+            <li><strong>Email:</strong> You receive 6-digit verification code</li>
+            <li><strong>Verification:</strong> Enter code and get logged in</li>
+        </ol>
+    </div>
+
+    <div id="results">
+        <h4>🔍 Test Results:</h4>
+        <p>Click the test buttons above to see results here...</p>
+    </div>
+
+    <script>
+        function log(message) {
+            const results = document.getElementById('results');
+            results.innerHTML += '<p>' + message + '</p>';
+        }
+
+        async function testBackendHealth() {
+            log('🔄 Testing backend health...');
+            try {
+                const response = await fetch('https://student-library-backend-o116.onrender.com/api/health');
+                const data = await response.json();
+                
+                if (response.status === 200) {
+                    log('✅ Backend is healthy! Status: ' + response.status);
+                    log('📊 Response: ' + JSON.stringify(data, null, 2));
+                } else {
+                    log('❌ Backend health issue. Status: ' + response.status);
+                }
+            } catch (error) {
+                log('❌ Backend health test failed: ' + error.message);
+                log('💡 Backend might be deploying or down');
+            }
+        }
+
+        async function testRegistrationEndpoint() {
+            log('🔄 Testing registration endpoint...');
+            try {
+                const testData = {
+                    name: 'Test User Registration',
+                    email: 'test' + Date.now() + '@example.com',
+                    password: 'testpassword123',
+                    studentId: 'TEST' + Date.now(),
+                    department: 'Computer Science'
+                };
+
+                const response = await fetch('https://student-library-backend-o116.onrender.com/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+                
+                log('📊 Registration test status: ' + response.status);
+                log('📋 Response: ' + JSON.stringify(data, null, 2));
+                
+                if (data.requiresVerification) {
+                    log('✅ GOOD: Backend returns requiresVerification: true');
+                    log('✅ Frontend should redirect to OTP page');
+                } else if (data.autoVerified) {
+                    log('⚠️ Backend is auto-verifying users (email service disabled)');
+                } else {
+                    log('❌ Backend not configured for OTP verification');
+                }
+            } catch (error) {
+                log('❌ Registration test failed: ' + error.message);
+            }
+        }
+
+        // Initial message
+        log('🚀 Ready to test! Click the buttons above to start.');
+        log('');
+    </script>
+</body>
+</html>
