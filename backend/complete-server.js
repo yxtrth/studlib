@@ -6,6 +6,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
@@ -151,6 +152,25 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Configure multer for handling FormData
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'avatar') {
+      // Accept images only
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed for avatar'), false);
+      }
+    } else {
+      cb(null, true);
+    }
+  }
+});
+
 // Request logging
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
@@ -213,8 +233,9 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Registration endpoint with OTP email verification
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', upload.single('avatar'), async (req, res) => {
   console.log('📝 Registration attempt:', req.body.email);
+  console.log('📝 Form data received:', Object.keys(req.body));
   
   try {
     const { name, email, password } = req.body;
@@ -262,6 +283,20 @@ app.post('/api/auth/register', async (req, res) => {
     const otp = generateOTP();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     
+    // Handle avatar - for now we'll use default, but file is available in req.file
+    let avatarData = {
+      public_id: 'default_avatar',
+      url: `https://via.placeholder.com/150/007bff/ffffff?text=${encodeURIComponent(name.charAt(0).toUpperCase())}`
+    };
+    
+    // If avatar file was uploaded, we could process it here
+    // For now, we'll use the default avatar
+    if (req.file) {
+      console.log('📷 Avatar file received:', req.file.originalname, req.file.size, 'bytes');
+      // TODO: Upload to cloudinary or save file
+      // For now, just use default avatar
+    }
+    
     // Create new user with OTP
     const userData = {
       name: name.trim(),
@@ -270,10 +305,7 @@ app.post('/api/auth/register', async (req, res) => {
       emailVerificationOTP: otp,
       emailVerificationExpires: otpExpires,
       isEmailVerified: false,
-      avatar: {
-        public_id: 'default_avatar',
-        url: `https://via.placeholder.com/150/007bff/ffffff?text=${encodeURIComponent(name.charAt(0).toUpperCase())}`
-      }
+      avatar: avatarData
     };
     
     const user = await User.create(userData);
