@@ -16,12 +16,13 @@ import LoadingSpinner from './components/UI/LoadingSpinner';
 import Home from './pages/Home';
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
+import EmailVerification from './pages/EmailVerification';
 import Dashboard from './pages/Dashboard';
 import BooksList from './pages/Books/BooksList';
 import BookDetail from './pages/Books/BookDetail';
 import VideosList from './pages/Videos/VideosList';
 import VideoDetail from './pages/Videos/VideoDetail';
-import Chat from './pages/Chat/Chat';
+import EnhancedChat from './pages/Chat/EnhancedChat';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/Admin/AdminPanel';
 
@@ -64,6 +65,7 @@ function AppContent() {
                 !isAuthenticated ? <Register /> : <Navigate to="/dashboard" replace />
               } 
             />
+            <Route path="/verify-email" element={<EmailVerification />} />
             
             {/* Protected Routes */}
             <Route path="/dashboard" element={
@@ -99,7 +101,7 @@ function AppContent() {
             <Route path="/chat" element={
               <ProtectedRoute>
                 <SocketProvider>
-                  <Chat />
+                  <EnhancedChat />
                 </SocketProvider>
               </ProtectedRoute>
             } />
@@ -107,7 +109,7 @@ function AppContent() {
             <Route path="/chat/:userId" element={
               <ProtectedRoute>
                 <SocketProvider>
-                  <Chat />
+                  <EnhancedChat />
                 </SocketProvider>
               </ProtectedRoute>
             } />

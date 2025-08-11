@@ -27,6 +27,18 @@ export const register = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await axios.post('/auth/register', userData);
+      
+      // Check if response requires verification
+      if (response.data.requiresVerification) {
+        return {
+          requiresVerification: true,
+          userId: response.data.userId,
+          email: response.data.email,
+          message: response.data.message
+        };
+      }
+      
+      // Old flow for backward compatibility
       const { token, user } = response.data;
       
       // Store token in localStorage
@@ -48,6 +60,17 @@ export const login = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await axios.post('/auth/login', credentials);
+      
+      // Check if verification is required
+      if (response.data.requiresVerification) {
+        return rejectWithValue({
+          requiresVerification: true,
+          userId: response.data.userId,
+          email: response.data.email,
+          message: response.data.message
+        });
+      }
+      
       const { token, user } = response.data;
       
       // Store token in localStorage
@@ -187,10 +210,20 @@ const authSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.isAuthenticated = true;
-        state.token = action.payload.token;
-        state.user = action.payload.user;
-        state.error = null;
+        
+        // Check if verification is required
+        if (action.payload.requiresVerification) {
+          state.isAuthenticated = false;
+          state.token = null;
+          state.user = null;
+          state.error = null;
+        } else {
+          // Old flow - direct login
+          state.isAuthenticated = true;
+          state.token = action.payload.token;
+          state.user = action.payload.user;
+          state.error = null;
+        }
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;

@@ -1,0 +1,74 @@
+/* Authentication Guard Styles */
+.auth-required-overlay {
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.auth-prompt {
+  text-align: center;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  max-width: 400px;
+}
+
+.auth-prompt h3 {
+  color: #495057;
+  margin-bottom: 15px;
+  font-size: 1.25rem;
+}
+
+.auth-prompt p {
+  color: #6c757d;
+  margin-bottom: 20px;
+}
+
+.auth-prompt .btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.auth-prompt .btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.auth-prompt .btn-primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+/* Disabled state for unauthorized actions */
+.auth-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.auth-disabled::after {
+  content: "Login Required";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+}

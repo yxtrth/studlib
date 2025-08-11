@@ -26,6 +26,8 @@ try {
   console.log('✓ Message routes loaded');
   const adminRoutes = require('./routes/admin');
   console.log('✓ Admin routes loaded');
+  const chatRoutes = require('./routes/chat');
+  console.log('✓ Chat routes loaded');
   
   app = express();
   server = createServer(app);
@@ -216,6 +218,7 @@ try {
   app.use('/api/videos', videoRoutes);
   app.use('/api/messages', messageRoutes);
   app.use('/api/admin', adminRoutes);
+  app.use('/api/chat', chatRoutes);
   console.log('✓ All routes configured');
 
   // Health check

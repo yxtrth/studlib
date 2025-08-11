@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Message = require('../models/Message');
 const User = require('../models/User');
+const UserConnection = require('../models/UserConnection');
 const { protect } = require('../middleware/auth');
 const { uploadSingle } = require('../middleware/upload');
 const { uploadToCloudinary } = require('../utils/cloudinary');
@@ -525,6 +526,215 @@ router.post('/room', [
     });
   } catch (error) {
     console.error('Send room message error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get all users for chat directory
+// @route   GET /api/messages/users
+// @access  Private
+router.get('/users', protect, async (req, res) => {
+  try {
+    const currentUserId = req.user._id;
+
+    // Get all verified active users except current user
+    const users = await User.find({
+      _id: { $ne: currentUserId },
+      isActive: true,
+      isEmailVerified: true
+    })
+    .select('name email avatar bio department studentId lastSeen joinDate')
+    .sort({ name: 1 });
+
+    // Get user connections to see who they've chatted with
+    const userConnection = await UserConnection.findOne({ userId: currentUserId });
+    const connectedUserIds = userConnection?.connections.map(conn => conn.userId.toString()) || [];
+
+    // Mark which users are already connected
+    const usersWithConnectionStatus = users.map(user => ({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      bio: user.bio,
+      department: user.department,
+      studentId: user.studentId,
+      lastSeen: user.lastSeen,
+      joinDate: user.joinDate,
+      isConnected: connectedUserIds.includes(user._id.toString()),
+      isOnline: false // Will be updated by socket
+    }));
+
+    res.json({
+      success: true,
+      users: usersWithConnectionStatus,
+      total: usersWithConnectionStatus.length
+    });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Initialize user in global chat (called on first login after email verification)
+// @route   POST /api/messages/initialize
+// @access  Private
+router.post('/initialize', protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Initialize user in global chat system
+    const userConnection = await UserConnection.initializeUser(userId);
+
+    // Send welcome message to general chat
+    const welcomeMessage = new Message({
+      senderId: userId,
+      message: `${req.user.name} joined the chat! Welcome! 🎉`,
+      messageType: 'system',
+      room: 'general'
+    });
+
+    await welcomeMessage.save();
+
+    res.json({
+      success: true,
+      message: 'User initialized in global chat',
+      userConnection
+    });
+  } catch (error) {
+    console.error('Initialize user error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Start a direct conversation with a user
+// @route   POST /api/messages/start-conversation
+// @access  Private
+router.post('/start-conversation', [
+  protect,
+  body('targetUserId').isMongoId().withMessage('Valid target user ID is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const currentUserId = req.user._id;
+    const { targetUserId } = req.body;
+
+    // Check if target user exists and is verified
+    const targetUser = await User.findById(targetUserId)
+      .select('name email avatar isActive isEmailVerified');
+
+    if (!targetUser || !targetUser.isActive || !targetUser.isEmailVerified) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found or not available for chat'
+      });
+    }
+
+    // Initialize both users' connections if needed
+    const currentUserConnection = await UserConnection.initializeUser(currentUserId);
+    const targetUserConnection = await UserConnection.initializeUser(targetUserId);
+
+    // Add each other as connections
+    await currentUserConnection.addConnection(targetUserId);
+    await targetUserConnection.addConnection(currentUserId);
+
+    // Generate conversation ID
+    const conversationId = Message.generateConversationId(currentUserId, targetUserId);
+
+    res.json({
+      success: true,
+      message: 'Conversation started',
+      conversationId,
+      targetUser: {
+        _id: targetUser._id,
+        name: targetUser.name,
+        email: targetUser.email,
+        avatar: targetUser.avatar
+      }
+    });
+  } catch (error) {
+    console.error('Start conversation error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Get user's chat statistics
+// @route   GET /api/messages/stats
+// @access  Private
+router.get('/stats', protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Get total messages sent
+    const messagesSent = await Message.countDocuments({
+      senderId: userId,
+      isDeleted: false
+    });
+
+    // Get total direct conversations
+    const directConversations = await Message.aggregate([
+      {
+        $match: {
+          $or: [
+            { senderId: userId },
+            { receiverId: userId }
+          ],
+          receiverId: { $ne: null }, // Only direct messages
+          isDeleted: false
+        }
+      },
+      {
+        $addFields: {
+          otherUserId: {
+            $cond: {
+              if: { $eq: ['$senderId', userId] },
+              then: '$receiverId',
+              else: '$senderId'
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$otherUserId'
+        }
+      },
+      {
+        $count: 'total'
+      }
+    ]);
+
+    // Get room memberships
+    const userConnection = await UserConnection.findOne({ userId });
+    const roomCount = userConnection?.roomMemberships.length || 0;
+
+    // Get unread messages count
+    const unreadCount = await Message.countDocuments({
+      receiverId: userId,
+      isRead: false,
+      isDeleted: false
+    });
+
+    res.json({
+      success: true,
+      stats: {
+        messagesSent,
+        directConversations: directConversations[0]?.total || 0,
+        roomMemberships: roomCount,
+        unreadMessages: unreadCount,
+        joinedAt: req.user.joinDate
+      }
+    });
+  } catch (error) {
+    console.error('Get stats error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

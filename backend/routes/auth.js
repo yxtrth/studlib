@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const User = require('../models/User');
 const { generateToken } = require('../middleware/auth');
+const { generateOTP, sendOTPEmail, sendWelcomeEmail } = require('../utils/emailService');
 
 const router = express.Router();
 
@@ -108,28 +109,36 @@ router.post('/register', upload.single('avatar'), validateRegistration, async (r
     }
 
     // Create new user (password will be hashed by pre-save middleware)
+    // Generate OTP for email verification
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    userData.emailVerificationOTP = otp;
+    userData.emailVerificationExpires = otpExpires;
+    userData.isEmailVerified = false;
+
     const user = await User.create(userData);
 
-    console.log('✅ User created successfully:', user._id);
+    // Send OTP email
+    const emailSent = await sendOTPEmail(user.email, otp, user.name);
+    
+    if (!emailSent) {
+      // If email fails, delete the user and return error
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.'
+      });
+    }
 
-    // Generate token
-    const token = generateToken(user._id);
+    console.log('✅ User created, OTP sent to:', user.email);
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        bio: user.bio,
-        role: user.role,
-        joinDate: user.joinDate,
-        studentId: user.studentId,
-        department: user.department
-      }
+      message: 'Registration successful! Please check your email for verification code.',
+      userId: user._id,
+      email: user.email,
+      requiresVerification: true
     });
   } catch (error) {
     console.error('❌ Registration error:', error);
@@ -174,6 +183,17 @@ router.post('/login', [
     // Check if account is active
     if (!user.isActive) {
       return res.status(401).json({ message: 'Account is deactivated' });
+    }
+
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(401).json({ 
+        success: false,
+        message: 'Please verify your email before logging in',
+        requiresVerification: true,
+        userId: user._id,
+        email: user.email
+      });
     }
 
     // Check password
@@ -236,6 +256,178 @@ router.get('/me', require('../middleware/auth').protect, async (req, res) => {
   } catch (error) {
     console.error('Get current user error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @desc    Verify OTP for email verification
+// @route   POST /api/auth/verify-otp
+// @access  Public
+router.post('/verify-otp', [
+  body('userId').notEmpty().withMessage('User ID is required'),
+  body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { userId, otp } = req.body;
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification request'
+      });
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    // Check OTP
+    if (user.emailVerificationOTP !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid OTP'
+      });
+    }
+
+    // Check OTP expiration
+    if (user.emailVerificationExpires < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP has expired. Please request a new one.'
+      });
+    }
+
+    // Verify the user and add to global chat
+    user.isEmailVerified = true;
+    user.isInGlobalChat = true; // Auto-add to global chat
+    user.onlineStatus = 'online';
+    user.emailVerificationOTP = undefined;
+    user.emailVerificationExpires = undefined;
+    await user.save();
+
+    // Send welcome email
+    await sendWelcomeEmail(user.email, user.name);
+
+    // Create a welcome message in global chat
+    const Message = require('../models/Message');
+    await Message.create({
+      sender: user._id,
+      content: `${user.name} has joined the Student Library community! 🎉`,
+      messageType: 'system',
+      chatType: 'global',
+      room: 'general'
+    });
+
+    console.log('✅ Email verified and user added to global chat:', user.email);
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully! Welcome to Student Library!',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        role: user.role,
+        joinDate: user.joinDate,
+        studentId: user.studentId,
+        department: user.department,
+        isEmailVerified: user.isEmailVerified
+      }
+    });
+  } catch (error) {
+    console.error('❌ OTP verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during verification'
+    });
+  }
+});
+
+// @desc    Resend OTP for email verification
+// @route   POST /api/auth/resend-otp
+// @access  Public
+router.post('/resend-otp', [
+  body('userId').notEmpty().withMessage('User ID is required')
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { userId } = req.body;
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid request'
+      });
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    // Generate new OTP
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    user.emailVerificationOTP = otp;
+    user.emailVerificationExpires = otpExpires;
+    await user.save();
+
+    // Send OTP email
+    const emailSent = await sendOTPEmail(user.email, otp, user.name);
+    
+    if (!emailSent) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.'
+      });
+    }
+
+    console.log('📧 OTP resent to:', user.email);
+
+    res.json({
+      success: true,
+      message: 'Verification code sent to your email!'
+    });
+  } catch (error) {
+    console.error('❌ Resend OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during resend'
+    });
   }
 });
 

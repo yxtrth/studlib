@@ -69,9 +69,20 @@ const Register = () => {
         formData.append('avatar', avatar);
       }
 
-      await dispatch(registerUser(formData)).unwrap();
-      toast.success('Registration successful! Please login.');
-      navigate('/login');
+      const result = await dispatch(registerUser(formData)).unwrap();
+      
+      if (result.requiresVerification) {
+        toast.success('Registration successful! Please check your email for verification code.');
+        navigate('/verify-email', { 
+          state: { 
+            userId: result.userId, 
+            email: result.email 
+          } 
+        });
+      } else {
+        toast.success('Registration successful! Please login.');
+        navigate('/login');
+      }
     } catch (error) {
       // Error is handled by useEffect above
     }

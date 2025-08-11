@@ -1,0 +1,41 @@
+📧 GMAIL APP PASSWORD SETUP GUIDE
+========================================
+
+The current error "Username and Password not accepted" means your Gmail App Password needs to be updated.
+
+🔧 STEP-BY-STEP FIX:
+
+1. **Enable 2-Factor Authentication**
+   - Go to: https://myaccount.google.com/security
+   - Find "2-Step Verification" and turn it ON
+   - This is REQUIRED for App Passwords
+
+2. **Generate App Password**
+   - Go to: https://myaccount.google.com/apppasswords
+   - Select "Mail" from dropdown
+   - Select "Windows Computer" (or your device)
+   - Click "Generate"
+   - Copy the 16-character password (like: abcd efgh ijkl mnop)
+
+3. **Update .env File**
+   - Replace EMAIL_PASS=axlabnhsywntejz
+   - With your new App Password (remove spaces)
+   - EMAIL_PASS=abcdefghijklmnop
+
+4. **Test Again**
+   - Restart your backend server
+   - Run: node test-otp-flow.js
+
+⚠️  IMPORTANT NOTES:
+- Use App Password, NOT your regular Gmail password
+- App Password is 16 characters without spaces
+- Must have 2FA enabled first
+- Each app needs its own App Password
+
+📧 Current Config:
+EMAIL_USER=libyatharth@gmail.com
+EMAIL_PASS=axlabnhsywntejz (← This needs to be updated!)
+
+🧪 After updating, test with:
+cd "c:\Users\KANTIKA TIWARI\Desktop\student lib\backend"
+node test-otp-flow.js

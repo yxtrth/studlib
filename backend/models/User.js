@@ -75,7 +75,27 @@ const userSchema = new mongoose.Schema({
     ref: 'Video'
   }],
   resetPasswordToken: String,
-  resetPasswordExpire: Date
+  resetPasswordExpire: Date,
+  emailVerificationOTP: String,
+  emailVerificationExpires: Date,
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  // Chat System Fields
+  isInGlobalChat: {
+    type: Boolean,
+    default: false
+  },
+  onlineStatus: {
+    type: String,
+    enum: ['online', 'offline', 'away'],
+    default: 'offline'
+  },
+  lastSeenInChat: {
+    type: Date,
+    default: Date.now
+  }
 }, {
   timestamps: true
 });

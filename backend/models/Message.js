@@ -1,17 +1,17 @@
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
-  senderId: {
+  sender: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: [true, 'Sender ID is required']
   },
-  receiverId: {
+  recipient: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false // Changed to false to allow room messages
+    required: false // For group messages, this will be null
   },
-  message: {
+  content: {
     type: String,
     required: [true, 'Message content is required'],
     trim: true,
@@ -19,8 +19,17 @@ const messageSchema = new mongoose.Schema({
   },
   messageType: {
     type: String,
-    enum: ['text', 'image', 'file'],
+    enum: ['text', 'image', 'file', 'system'],
     default: 'text'
+  },
+  chatType: {
+    type: String,
+    enum: ['global', 'direct'],
+    required: true
+  },
+  room: {
+    type: String,
+    required: false // For group chats: 'general', 'study-groups', etc. For direct messages: null
   },
   attachment: {
     public_id: {
@@ -63,14 +72,15 @@ const messageSchema = new mongoose.Schema({
   },
   conversationId: {
     type: String,
-    required: true
+    required: false // Not required for global messages
   }
 }, {
   timestamps: true
 });
 
 // Index for efficient querying
-messageSchema.index({ conversationId: 1, createdAt: -1 });
+messageSchema.index({ room: 1, createdAt: -1 }); // For group chat messages
+messageSchema.index({ conversationId: 1, createdAt: -1 }); // For direct messages
 messageSchema.index({ senderId: 1, receiverId: 1 });
 messageSchema.index({ isRead: 1 });
 

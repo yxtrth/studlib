@@ -37,7 +37,18 @@ const Login = () => {
       toast.success('Login successful!');
       navigate('/dashboard');
     } catch (error) {
-      // Error is handled by useEffect above
+      // Check if the error is about email verification
+      if (error.requiresVerification) {
+        toast.error('Please verify your email before logging in');
+        navigate('/verify-email', { 
+          state: { 
+            userId: error.userId, 
+            email: error.email 
+          } 
+        });
+      } else {
+        // Other errors are handled by useEffect above
+      }
     }
   };
 
