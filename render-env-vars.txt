@@ -1,0 +1,24 @@
+# Render Environment Variables Configuration
+# Add these to your Render service environment variables
+
+# Self-ping URL (replace with your actual Render URL)
+KEEP_ALIVE_URL=https://your-app-name.onrender.com
+
+# Production environment
+NODE_ENV=production
+
+# MongoDB Atlas connection (you should already have this)
+# MONGODB_URI=your_mongodb_atlas_connection_string
+
+# JWT Secret (you should already have this)
+# JWT_SECRET=your_jwt_secret
+
+# Email configuration (you should already have this)
+# EMAIL_USER=your_email@gmail.com
+# EMAIL_PASS=your_app_password
+
+# CORS allowed origins (update with your Netlify URL)
+CLIENT_URL=https://inquisitive-kashata-b3ac7e.netlify.app
+
+# Optional: Custom port (Render will override this)
+PORT=8080

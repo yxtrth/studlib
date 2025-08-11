@@ -249,6 +249,17 @@ try {
     });
   });
 
+  // Health check endpoint for monitoring
+  app.get('/api/health', (req, res) => {
+    res.json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.0.0'
+    });
+  });
+
   // 404 handler
   app.use('*', (req, res) => {
     res.status(404).json({ message: 'Route not found' });
@@ -256,9 +267,27 @@ try {
 
   const PORT = process.env.PORT || 8080;
 
+  // Self-ping to prevent sleep on free hosting
+  if (process.env.NODE_ENV === 'production') {
+    const http = require('http');
+    const SELF_PING_INTERVAL = 14 * 60 * 1000; // 14 minutes
+    
+    setInterval(() => {
+      const url = process.env.KEEP_ALIVE_URL || `http://localhost:${PORT}`;
+      http.get(`${url}/api/health`, (res) => {
+        console.log(`🔄 Self-ping successful: ${res.statusCode} at ${new Date().toISOString()}`);
+      }).on('error', (err) => {
+        console.error('❌ Self-ping error:', err.message);
+      });
+    }, SELF_PING_INTERVAL);
+    
+    console.log('🔄 Self-ping service started for 24/7 uptime');
+  }
+
   server.listen(PORT, () => {
     console.log(`✓ Server running on port ${PORT}`);
     console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`✓ Health check available at: http://localhost:${PORT}/api/health`);
     console.log('✓ Student Library Backend Server is ready!');
   });
 

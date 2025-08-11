@@ -1,0 +1,37 @@
+name: Keep Backend Alive 24/7
+on:
+  schedule:
+    # Ping every 10 minutes to prevent Render from sleeping
+    - cron: '*/10 * * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Backend Health Endpoint
+        run: |
+          echo "Pinging backend to keep it alive..."
+          
+          # Replace YOUR_RENDER_URL with your actual Render backend URL
+          BACKEND_URL="https://your-app-name.onrender.com"
+          
+          # Try health endpoint first
+          if curl -f -s --max-time 30 "$BACKEND_URL/api/health"; then
+            echo "✅ Health endpoint responded successfully"
+          else
+            echo "⚠️ Health endpoint failed, trying root endpoint..."
+            if curl -f -s --max-time 30 "$BACKEND_URL/"; then
+              echo "✅ Root endpoint responded successfully"
+            else
+              echo "❌ Both endpoints failed - backend may be down"
+              exit 1
+            fi
+          fi
+          
+          echo "Ping completed at $(date)"
+
+      - name: Log Status
+        run: |
+          echo "Keep-alive ping completed"
+          echo "Next ping will be in 10 minutes"
