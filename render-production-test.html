@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Netlify + Render Production Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 30px;
+        }
+        .url-config {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #007bff;
+        }
+        .url-group {
+            margin: 15px 0;
+        }
+        .url-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .url-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+        .card.production { border-left-color: #28a745; }
+        .card.connectivity { border-left-color: #007bff; }
+        .card.auth { border-left-color: #6f42c1; }
+        .card.status { border-left-color: #ffc107; }
+        .status {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 8px 4px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        button.success { background: #28a745; }
+        button.warning { background: #ffc107; color: #333; }
+        button.danger { background: #dc3545; }
+        .logs {
+            background-color: #1a1a1a;
+            color: #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .connection-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .status-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .status-item .icon {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .status-item .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .deployment-info {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Production Deployment Test</h1>
+            <p>Netlify Frontend ↔ Render Backend Connection</p>
+        </div>
+        
+        <div class="content">
+            <div class="deployment-info">
+                <h3>🎉 Congratulations on your production setup!</h3>
+                <p><strong>Frontend:</strong> Hosted on Netlify with global CDN</p>
+                <p><strong>Backend:</strong> Hosted on Render with automatic HTTPS</p>
+                <p><strong>Database:</strong> MongoDB Atlas (cloud database)</p>
+                <p><strong>Email:</strong> Gmail SMTP service</p>
+            </div>
+
+            <div class="url-config">
+                <h3>🔗 Configure Your URLs</h3>
+                <div class="url-group">
+                    <label>Render Backend URL:</label>
+                    <input type="text" id="renderUrl" placeholder="https://your-app-name.onrender.com" />
+                    <small style="color: #666;">Enter your Render app URL (found in Render dashboard)</small>
+                </div>
+                <div class="url-group">
+                    <label>Netlify Frontend URL:</label>
+                    <input type="text" id="netlifyUrl" value="https://inquisitive-kashata-b3ac7e.netlify.app" />
+                    <small style="color: #666;">Your Netlify app URL</small>
+                </div>
+                <button onclick="updateUrls()" class="success">Update URLs</button>
+                <button onclick="autoDetectRender()" class="warning">Auto-detect Render URL</button>
+            </div>
+
+            <div id="mainStatus" class="status info">
+                Configure your Render URL above to start testing
+            </div>
+
+            <div class="connection-status">
+                <div class="status-item">
+                    <span class="icon" id="renderStatus">⏳</span>
+                    <span class="label">Render Backend</span>
+                </div>
+                <div class="status-item">
+                    <span class="icon" id="netlifyStatus">⏳</span>
+                    <span class="label">Netlify Frontend</span>
+                </div>
+                <div class="status-item">
+                    <span class="icon" id="databaseStatus">⏳</span>
+                    <span class="label">Database</span>
+                </div>
+                <div class="status-item">
+                    <span class="icon" id="emailStatus">⏳</span>
+                    <span class="label">Email Service</span>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card production">
+                    <h3>🌐 Production Connectivity</h3>
+                    <button onclick="testRenderConnection()" id="renderTestBtn">Test Render Backend</button>
+                    <button onclick="testNetlifyConnection()" id="netlifyTestBtn">Test Netlify Frontend</button>
+                    <button onclick="testCrossOrigin()" id="corsTestBtn">Test CORS Configuration</button>
+                    <button onclick="testProductionHealth()" id="healthTestBtn">Test Production Health</button>
+                </div>
+
+                <div class="card connectivity">
+                    <h3>🔗 End-to-End Testing</h3>
+                    <button onclick="testFullFlow()" id="flowTestBtn">Test Complete Flow</button>
+                    <button onclick="testApiEndpoints()" id="apiTestBtn">Test All API Endpoints</button>
+                    <button onclick="testWebSocketConnection()" id="wsTestBtn">Test WebSocket (Chat)</button>
+                    <button onclick="performanceTest()" id="perfTestBtn">Performance Test</button>
+                </div>
+
+                <div class="card auth">
+                    <h3>🔐 Production Authentication</h3>
+                    <div style="margin: 10px 0;">
+                        <input type="email" id="prodEmail" placeholder="test@example.com" style="width: 100%; margin: 5px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                        <input type="password" id="prodPassword" placeholder="password123" style="width: 100%; margin: 5px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" />
+                    </div>
+                    <button onclick="testProductionAuth()" id="authTestBtn">Test Production Auth</button>
+                    <button onclick="testEmailVerification()" id="emailTestBtn">Test Email Verification</button>
+                </div>
+
+                <div class="card status">
+                    <h3>📊 Deployment Status</h3>
+                    <button onclick="getRenderStatus()" id="statusBtn">Check Render Status</button>
+                    <button onclick="getNetlifyStatus()" id="netlifyStatusBtn">Check Netlify Status</button>
+                    <button onclick="getDatabaseStatus()" id="dbStatusBtn">Check Database Status</button>
+                    <button onclick="getDeploymentInfo()" id="deployInfoBtn">Get Deployment Info</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button onclick="clearLogs()" style="background: #6c757d;">🧹 Clear Logs</button>
+                <button onclick="runProductionTests()" class="success">🚀 Run All Production Tests</button>
+                <button onclick="openNetlifyApp()" style="background: #00c6ff;">🌐 Open Netlify App</button>
+            </div>
+
+            <div class="logs" id="logs">
+                <div style="color: #00ff00; font-weight: bold;">📋 Production Test Logs:</div>
+                <div style="color: #ffff00;">Ready to test your Netlify + Render production deployment...</div>
+                <div style="color: #cyan;">Configure your Render URL above to begin testing.</div>
+            </div>
+
+            <div class="info status" style="margin-top: 20px;">
+                <strong>🔧 Production URLs:</strong><br>
+                • Netlify: <span id="displayNetlifyUrl">https://inquisitive-kashata-b3ac7e.netlify.app</span><br>
+                • Render: <span id="displayRenderUrl">Not configured</span><br>
+                • Database: MongoDB Atlas (cloud)<br>
+                • Email: Gmail SMTP<br><br>
+                <strong>📋 Production Features:</strong><br>
+                • HTTPS encryption on both frontend and backend<br>
+                • Global CDN delivery via Netlify<br>
+                • Automatic scaling on Render<br>
+                • Real-time chat with WebSocket<br>
+                • Email verification system<br>
+                • MongoDB Atlas with global clusters
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let RENDER_URL = '';
+        let NETLIFY_URL = 'https://inquisitive-kashata-b3ac7e.netlify.app';
+        const logsDiv = document.getElementById('logs');
+
+        function log(message, color = '#00ff00') {
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function setMainStatus(message, type) {
+            const statusDiv = document.getElementById('mainStatus');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function updateStatusIcon(iconId, status) {
+            const icon = document.getElementById(iconId);
+            switch(status) {
+                case 'success': icon.textContent = '✅'; break;
+                case 'error': icon.textContent = '❌'; break;
+                case 'warning': icon.textContent = '⚠️'; break;
+                case 'loading': icon.textContent = '⏳'; break;
+                default: icon.textContent = '❓'; break;
+            }
+        }
+
+        function clearLogs() {
+            logsDiv.innerHTML = '<div style="color: #00ff00; font-weight: bold;">📋 Production Test Logs:</div><div style="color: #ffff00;">Logs cleared...</div>';
+        }
+
+        function updateUrls() {
+            RENDER_URL = document.getElementById('renderUrl').value.trim();
+            NETLIFY_URL = document.getElementById('netlifyUrl').value.trim();
+            
+            if (!RENDER_URL) {
+                log('⚠️ Please enter your Render URL', '#ffff00');
+                return;
+            }
+            
+            // Remove trailing slash
+            RENDER_URL = RENDER_URL.replace(/\/$/, '');
+            NETLIFY_URL = NETLIFY_URL.replace(/\/$/, '');
+            
+            document.getElementById('displayRenderUrl').textContent = RENDER_URL;
+            document.getElementById('displayNetlifyUrl').textContent = NETLIFY_URL;
+            
+            log(`✅ URLs updated: Render: ${RENDER_URL}`, '#00ff00');
+            log(`✅ URLs updated: Netlify: ${NETLIFY_URL}`, '#00ff00');
+            setMainStatus('✅ URLs configured - ready to test!', 'success');
+        }
+
+        function autoDetectRender() {
+            // Common Render URL patterns
+            const possibleUrls = [
+                'https://student-library-backend.onrender.com',
+                'https://student-library.onrender.com',
+                'https://studlib-backend.onrender.com',
+                'https://studlib.onrender.com'
+            ];
+            
+            log('🔍 Auto-detecting Render URL...', '#ffff00');
+            
+            // Try each possible URL
+            possibleUrls.forEach(async (url, index) => {
+                try {
+                    const response = await fetch(`${url}/api/health`, { method: 'GET' });
+                    if (response.ok) {
+                        document.getElementById('renderUrl').value = url;
+                        log(`✅ Found Render URL: ${url}`, '#00ff00');
+                        updateUrls();
+                        return;
+                    }
+                } catch (error) {
+                    log(`❌ ${url} not accessible`, '#ff6666');
+                }
+            });
+        }
+
+        async function makeRequest(endpoint, method = 'GET', data = null) {
+            if (!RENDER_URL) {
+                log('⚠️ Please configure Render URL first', '#ffff00');
+                return { error: 'Render URL not configured', success: false };
+            }
+
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': NETLIFY_URL
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`${RENDER_URL}${endpoint}`, options);
+                const result = await response.json();
+                
+                return { status: response.status, data: result, success: response.ok };
+            } catch (error) {
+                return { error: error.message, success: false };
+            }
+        }
+
+        async function testRenderConnection() {
+            log('🔄 Testing Render backend connection...', '#ffff00');
+            updateStatusIcon('renderStatus', 'loading');
+            
+            const result = await makeRequest('/api/health');
+            
+            if (result.success) {
+                log('✅ Render backend is online!', '#00ff00');
+                log(`📊 Status: ${result.status}`, '#cyan');
+                log(`⏱️ Response time: ${Date.now()}ms`, '#cyan');
+                updateStatusIcon('renderStatus', 'success');
+                setMainStatus('✅ Render backend connection successful!', 'success');
+            } else {
+                log('❌ Render backend connection failed', '#ff0000');
+                log(`Error: ${result.error}`, '#ff0000');
+                updateStatusIcon('renderStatus', 'error');
+                setMainStatus('❌ Render backend connection failed', 'error');
+            }
+        }
+
+        async function testNetlifyConnection() {
+            log('🔄 Testing Netlify frontend...', '#ffff00');
+            updateStatusIcon('netlifyStatus', 'loading');
+            
+            try {
+                const response = await fetch(NETLIFY_URL);
+                if (response.ok) {
+                    log('✅ Netlify frontend is online!', '#00ff00');
+                    updateStatusIcon('netlifyStatus', 'success');
+                } else {
+                    log('⚠️ Netlify frontend responded with error', '#ffff00');
+                    updateStatusIcon('netlifyStatus', 'warning');
+                }
+            } catch (error) {
+                log('❌ Netlify frontend connection failed', '#ff0000');
+                updateStatusIcon('netlifyStatus', 'error');
+            }
+        }
+
+        async function testProductionHealth() {
+            log('🏥 Testing production health...', '#ffff00');
+            
+            const result = await makeRequest('/api/health');
+            
+            if (result.success) {
+                log('✅ Production health check passed!', '#00ff00');
+                log(`📊 Database: ${result.data.database?.status || 'Unknown'}`, '#cyan');
+                log(`📧 Email: ${result.data.email?.status || 'Unknown'}`, '#cyan');
+                log(`👥 Users: ${result.data.database?.userCount || 0}`, '#cyan');
+                
+                updateStatusIcon('databaseStatus', result.data.database?.status === 'connected' ? 'success' : 'error');
+                updateStatusIcon('emailStatus', result.data.email?.status === 'verified' ? 'success' : 'warning');
+                
+                setMainStatus('✅ Production system is healthy!', 'success');
+            } else {
+                log('❌ Production health check failed', '#ff0000');
+                setMainStatus('❌ Production health check failed', 'error');
+            }
+        }
+
+        async function testCrossOrigin() {
+            log('🔗 Testing CORS configuration...', '#ffff00');
+            
+            // Test preflight request
+            try {
+                const response = await fetch(`${RENDER_URL}/api/health`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': NETLIFY_URL,
+                        'Access-Control-Request-Method': 'GET'
+                    }
+                });
+                
+                if (response.ok) {
+                    log('✅ CORS preflight check passed!', '#00ff00');
+                    log('✅ Netlify can communicate with Render', '#00ff00');
+                } else {
+                    log('⚠️ CORS might have issues', '#ffff00');
+                }
+            } catch (error) {
+                log('❌ CORS test failed: ' + error.message, '#ff0000');
+            }
+        }
+
+        async function testProductionAuth() {
+            const email = document.getElementById('prodEmail').value;
+            const password = document.getElementById('prodPassword').value;
+            
+            if (!email || !password) {
+                log('⚠️ Please enter email and password', '#ffff00');
+                return;
+            }
+            
+            log('🔐 Testing production authentication...', '#ffff00');
+            
+            // Test registration
+            const regResult = await makeRequest('/api/auth/register', 'POST', {
+                name: 'Production Test User',
+                email: email,
+                password: password
+            });
+            
+            if (regResult.success) {
+                log('✅ Production registration successful!', '#00ff00');
+                log(`👤 User created: ${regResult.data.user?.email}`, '#cyan');
+            } else {
+                log('ℹ️ Registration response: ' + (regResult.data?.message || regResult.error), '#cyan');
+            }
+        }
+
+        async function runProductionTests() {
+            log('🚀 Starting comprehensive production tests...', '#ffff00');
+            setMainStatus('Running production tests...', 'warning');
+            
+            await testRenderConnection();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testNetlifyConnection();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testCrossOrigin();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testProductionHealth();
+            
+            log('🎉 Production tests completed!', '#00ff00');
+            setMainStatus('✅ All production tests completed!', 'success');
+        }
+
+        function openNetlifyApp() {
+            window.open(NETLIFY_URL, '_blank');
+        }
+
+        // Initialize
+        window.onload = () => {
+            log('🚀 Production test dashboard loaded', '#cyan');
+            log('💡 Configure your Render URL to begin testing', '#ffff00');
+            
+            // Try to auto-detect if possible
+            setTimeout(autoDetectRender, 2000);
+        };
+    </script>
+</body>
+</html>

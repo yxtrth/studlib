@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        .logs {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Student Library - Backend Connection Test</h1>
+        
+        <div id="status" class="status info">
+            Click "Test Connection" to check backend status
+        </div>
+
+        <div>
+            <button onclick="testHealth()">🏥 Test Health Endpoint</button>
+            <button onclick="testRegistration()">📝 Test Registration</button>
+            <button onclick="testCORS()">🌐 Test CORS</button>
+            <button onclick="clearLogs()">🧹 Clear Logs</button>
+        </div>
+
+        <div class="logs" id="logs">
+            <strong>📋 Test Logs:</strong><br>
+            Ready to test backend connectivity...<br>
+        </div>
+
+        <div class="info status">
+            <strong>📍 Expected Backend URL:</strong> http://localhost:5003<br>
+            <strong>🔗 Health Endpoint:</strong> http://localhost:5003/api/health<br>
+            <strong>📝 Registration:</strong> http://localhost:5003/api/auth/register
+        </div>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const logsDiv = document.getElementById('logs');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function clearLogs() {
+            logsDiv.innerHTML = '<strong>📋 Test Logs:</strong><br>Logs cleared...<br>';
+        }
+
+        async function testHealth() {
+            log('🏥 Testing health endpoint...', 'info');
+            setStatus('Testing health endpoint...', 'warning');
+
+            try {
+                const response = await fetch('http://localhost:5003/api/health');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Health check successful: ${JSON.stringify(data)}`, 'success');
+                    setStatus('✅ Backend is reachable and healthy!', 'success');
+                } else {
+                    log(`❌ Health check failed: ${response.status} ${response.statusText}`, 'error');
+                    setStatus(`❌ Health check failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Connection failed: ${error.message}`, 'error');
+                setStatus('❌ Cannot reach backend server', 'error');
+                
+                if (error.message.includes('ECONNREFUSED')) {
+                    log('💡 Server is not running. Start it with: start-server.bat', 'warning');
+                } else if (error.message.includes('CORS')) {
+                    log('💡 CORS error - check server CORS configuration', 'warning');
+                }
+            }
+        }
+
+        async function testRegistration() {
+            log('📝 Testing registration endpoint...', 'info');
+            setStatus('Testing registration endpoint...', 'warning');
+
+            const testData = {
+                name: 'Test User',
+                email: `test${Date.now()}@example.com`,
+                password: 'testpassword123'
+            };
+
+            try {
+                const response = await fetch('http://localhost:5003/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log(`✅ Registration test successful: ${data.message}`, 'success');
+                    setStatus('✅ Registration endpoint working!', 'success');
+                } else {
+                    log(`⚠️ Registration response: ${response.status} - ${data.message}`, 'warning');
+                    setStatus(`⚠️ Registration returned: ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ Registration test failed: ${error.message}`, 'error');
+                setStatus('❌ Registration endpoint unreachable', 'error');
+            }
+        }
+
+        async function testCORS() {
+            log('🌐 Testing CORS configuration...', 'info');
+            setStatus('Testing CORS...', 'warning');
+
+            try {
+                const response = await fetch('http://localhost:5003/api/health', {
+                    method: 'OPTIONS'
+                });
+
+                log(`🌐 CORS preflight response: ${response.status}`, 'info');
+                
+                const headers = [];
+                response.headers.forEach((value, key) => {
+                    if (key.includes('access-control')) {
+                        headers.push(`${key}: ${value}`);
+                    }
+                });
+
+                if (headers.length > 0) {
+                    log(`✅ CORS headers found: ${headers.join(', ')}`, 'success');
+                    setStatus('✅ CORS is configured', 'success');
+                } else {
+                    log('⚠️ No CORS headers found', 'warning');
+                    setStatus('⚠️ CORS may not be configured', 'warning');
+                }
+            } catch (error) {
+                log(`❌ CORS test failed: ${error.message}`, 'error');
+                setStatus('❌ CORS test failed', 'error');
+            }
+        }
+
+        // Auto-test on page load
+        window.onload = () => {
+            log('🚀 Page loaded, ready for testing', 'info');
+            setTimeout(testHealth, 1000);
+        };
+    </script>
+</body>
+</html>

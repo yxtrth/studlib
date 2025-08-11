@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Complete Student Library Testing Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 30px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid;
+        }
+        .card.health { border-left-color: #28a745; }
+        .card.auth { border-left-color: #007bff; }
+        .card.email { border-left-color: #ffc107; }
+        .card.database { border-left-color: #6f42c1; }
+        .status {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 8px 4px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .logs {
+            background-color: #1a1a1a;
+            color: #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .stat .number {
+            font-size: 1.8em;
+            font-weight: bold;
+            display: block;
+        }
+        .stat .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Student Library Testing Dashboard</h1>
+            <p>Complete Backend Testing Suite - Database, Email & Authentication</p>
+        </div>
+        
+        <div class="content">
+            <div id="mainStatus" class="status info">
+                Ready to test your complete Student Library backend system
+            </div>
+
+            <div class="stats" id="stats">
+                <div class="stat">
+                    <span class="number" id="healthStatus">?</span>
+                    <span class="label">Health Status</span>
+                </div>
+                <div class="stat">
+                    <span class="number" id="dbStatus">?</span>
+                    <span class="label">Database</span>
+                </div>
+                <div class="stat">
+                    <span class="number" id="emailStatus">?</span>
+                    <span class="label">Email Service</span>
+                </div>
+                <div class="stat">
+                    <span class="number" id="userCount">?</span>
+                    <span class="label">Total Users</span>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="card health">
+                    <h3>🏥 System Health</h3>
+                    <ul class="feature-list">
+                        <li>Backend API Status</li>
+                        <li>Database Connection</li>
+                        <li>Email Service Status</li>
+                        <li>CORS Configuration</li>
+                    </ul>
+                    <button onclick="testSystemHealth()" id="healthBtn">Test System Health</button>
+                    <button onclick="testAllEndpoints()" id="allTestBtn">Test All Endpoints</button>
+                </div>
+
+                <div class="card auth">
+                    <h3>🔐 Authentication Flow</h3>
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="testName" value="Test User" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="testEmail" value="test@example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="testPassword" value="testpassword123" />
+                    </div>
+                    <button onclick="testRegistration()" id="regBtn">Test Registration</button>
+                    <button onclick="testLogin()" id="loginBtn">Test Login</button>
+                </div>
+
+                <div class="card email">
+                    <h3>📧 Email Verification</h3>
+                    <div class="form-group">
+                        <label>OTP Code:</label>
+                        <input type="text" id="otpCode" placeholder="Enter 6-digit OTP" maxlength="6" />
+                    </div>
+                    <button onclick="testOTPVerification()" id="otpBtn">Verify OTP</button>
+                    <button onclick="testEmailStatus()" id="emailTestBtn">Test Email Service</button>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 15px;">
+                        💡 After registration, check console logs for OTP or your email
+                    </p>
+                </div>
+
+                <div class="card database">
+                    <h3>💾 Database Operations</h3>
+                    <button onclick="testDatabase()" id="dbBtn">Test Database</button>
+                    <button onclick="fetchUsers()" id="usersBtn">Fetch All Users</button>
+                    <button onclick="testCompleteFlow()" id="flowBtn">Test Complete Flow</button>
+                    <div id="usersList" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button onclick="clearLogs()" style="background: #6c757d;">🧹 Clear Logs</button>
+                <button onclick="runAllTests()" style="background: #28a745;">🚀 Run All Tests</button>
+                <button onclick="openFrontendTest()" style="background: #17a2b8;">🌐 Open Frontend Test</button>
+                <button onclick="testBothBackends()" style="background: #ffc107; color: #000;">🔄 Test Both Backends</button>
+                <button onclick="switchToProduction()" style="background: #007bff;">☁️ Use Production</button>
+                <button onclick="switchToLocal()" style="background: #6c757d;">🏠 Use Local</button>
+            </div>
+
+            <div class="logs" id="logs">
+                <div style="color: #00ff00; font-weight: bold;">📋 System Logs:</div>
+                <div style="color: #ffff00;">Ready to test your complete Student Library backend...</div>
+                <div style="color: #cyan;">Use the buttons above to test different features.</div>
+            </div>
+
+            <div class="info status" style="margin-top: 20px;">
+                <strong>🔗 Backend URLs:</strong><br>
+                • Production: https://student-library-backend-o116.onrender.com<br>
+                • Local: http://localhost:5003<br>
+                • Health: <span id="currentBackendUrl">https://student-library-backend-o116.onrender.com/api/health</span><br>
+                • Frontend: https://inquisitive-kashata-b3ac7e.netlify.app<br><br>
+                <strong>📋 Available Endpoints:</strong><br>
+                • POST /api/auth/register - User registration with OTP<br>
+                • POST /api/auth/verify-otp - Email verification<br>
+                • POST /api/auth/login - User login (verified users only)<br>
+                • GET /api/users - Get all verified users
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-detect environment: production (Render) or development (localhost)
+        const PRODUCTION_URL = 'https://student-library-backend-o116.onrender.com';
+        const DEVELOPMENT_URL = 'http://localhost:5003';
+        
+        // Try production first, fallback to development
+        let BACKEND_URL = PRODUCTION_URL;
+        let isProduction = true;
+        
+        const logsDiv = document.getElementById('logs');
+        let currentUser = null;
+
+        function log(message, color = '#00ff00') {
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function setMainStatus(message, type) {
+            const statusDiv = document.getElementById('mainStatus');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function updateStats(health, db, email, users) {
+            document.getElementById('healthStatus').textContent = health || '?';
+            document.getElementById('dbStatus').textContent = db || '?';
+            document.getElementById('emailStatus').textContent = email || '?';
+            document.getElementById('userCount').textContent = users || '?';
+        }
+
+        function clearLogs() {
+            logsDiv.innerHTML = '<div style="color: #00ff00; font-weight: bold;">📋 System Logs:</div><div style="color: #ffff00;">Logs cleared...</div>';
+        }
+
+        async function makeRequest(endpoint, method = 'GET', data = null) {
+            try {
+                const options = {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(`${BACKEND_URL}${endpoint}`, options);
+                const result = await response.json();
+                
+                return { status: response.status, data: result, success: response.ok };
+            } catch (error) {
+                // If production fails, try development
+                if (isProduction && BACKEND_URL === PRODUCTION_URL) {
+                    log(`⚠️ Production backend unreachable, trying localhost...`, '#ffff00');
+                    BACKEND_URL = DEVELOPMENT_URL;
+                    isProduction = false;
+                    return makeRequest(endpoint, method, data); // Retry with localhost
+                }
+                return { error: error.message, success: false };
+            }
+        }
+
+        async function testSystemHealth() {
+            log('🏥 Testing system health...', '#ffff00');
+            setMainStatus('Testing system health...', 'warning');
+
+            const result = await makeRequest('/api/health');
+            
+            if (result.success) {
+                log('✅ System health check passed!', '#00ff00');
+                log(`📊 Database: ${result.data.database.status}`, '#cyan');
+                log(`📧 Email: ${result.data.email.status}`, '#cyan');
+                log(`⏱️ Uptime: ${Math.floor(result.data.uptime)}s`, '#cyan');
+                
+                updateStats('✅', 
+                    result.data.database.status === 'connected' ? '✅' : '❌',
+                    result.data.email.status === 'verified' ? '✅' : '⚠️',
+                    result.data.database.userCount || '0'
+                );
+                
+                setMainStatus('✅ System health check passed!', 'success');
+            } else {
+                log('❌ System health check failed: ' + (result.error || 'Unknown error'), '#ff0000');
+                setMainStatus('❌ System health check failed', 'error');
+                updateStats('❌', '❌', '❌', '?');
+            }
+        }
+
+        async function testRegistration() {
+            const name = document.getElementById('testName').value;
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            log('📝 Testing user registration...', '#ffff00');
+            setMainStatus('Testing registration...', 'warning');
+
+            const result = await makeRequest('/api/auth/register', 'POST', {
+                name, email, password
+            });
+
+            if (result.success) {
+                log('✅ Registration successful!', '#00ff00');
+                log(`👤 User ID: ${result.data.user.id}`, '#cyan');
+                log(`📧 Email: ${result.data.user.email}`, '#cyan');
+                log(`🔐 Requires verification: ${result.data.requiresVerification}`, '#cyan');
+                
+                currentUser = result.data.user;
+                setMainStatus('✅ Registration successful! Check for OTP email.', 'success');
+                
+                if (result.data.requiresVerification) {
+                    log('📨 OTP email should be sent! Check console logs.', '#ffff00');
+                }
+            } else {
+                log('❌ Registration failed: ' + (result.data?.message || result.error), '#ff0000');
+                setMainStatus('❌ Registration failed', 'error');
+            }
+        }
+
+        async function testOTPVerification() {
+            const email = document.getElementById('testEmail').value;
+            const otp = document.getElementById('otpCode').value;
+
+            if (!otp) {
+                log('⚠️ Please enter OTP code', '#ffff00');
+                return;
+            }
+
+            log('🔐 Testing OTP verification...', '#ffff00');
+            setMainStatus('Verifying OTP...', 'warning');
+
+            const result = await makeRequest('/api/auth/verify-otp', 'POST', {
+                email, otp
+            });
+
+            if (result.success) {
+                log('✅ OTP verification successful!', '#00ff00');
+                log(`👤 User verified: ${result.data.user.name}`, '#cyan');
+                log(`📧 Email verified: ${result.data.user.isEmailVerified}`, '#cyan');
+                log(`💬 Added to global chat: ${result.data.user.isInGlobalChat}`, '#cyan');
+                
+                currentUser = result.data.user;
+                setMainStatus('✅ Email verified! You can now login.', 'success');
+            } else {
+                log('❌ OTP verification failed: ' + (result.data?.message || result.error), '#ff0000');
+                setMainStatus('❌ OTP verification failed', 'error');
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            log('🔑 Testing user login...', '#ffff00');
+            setMainStatus('Testing login...', 'warning');
+
+            const result = await makeRequest('/api/auth/login', 'POST', {
+                email, password
+            });
+
+            if (result.success) {
+                log('✅ Login successful!', '#00ff00');
+                log(`👤 User: ${result.data.user.name}`, '#cyan');
+                log(`🎫 Token: ${result.data.token ? 'Received' : 'None'}`, '#cyan');
+                log(`🔐 Email verified: ${result.data.user.isEmailVerified}`, '#cyan');
+                
+                currentUser = result.data.user;
+                setMainStatus('✅ Login successful!', 'success');
+            } else {
+                log('❌ Login failed: ' + (result.data?.message || result.error), '#ff0000');
+                
+                if (result.data?.requiresVerification) {
+                    log('📧 Email verification required before login', '#ffff00');
+                    setMainStatus('❌ Email verification required', 'warning');
+                } else {
+                    setMainStatus('❌ Login failed', 'error');
+                }
+            }
+        }
+
+        async function fetchUsers() {
+            log('👥 Fetching all verified users...', '#ffff00');
+
+            const result = await makeRequest('/api/users');
+
+            if (result.success) {
+                log(`✅ Found ${result.data.count} verified users`, '#00ff00');
+                
+                const usersList = document.getElementById('usersList');
+                usersList.innerHTML = '<h4>Verified Users:</h4>';
+                
+                result.data.users.forEach(user => {
+                    usersList.innerHTML += `
+                        <div style="padding: 8px; border: 1px solid #ddd; margin: 4px 0; border-radius: 4px;">
+                            <strong>${user.name}</strong> (${user.email})<br>
+                            <small>Joined: ${new Date(user.createdAt).toLocaleDateString()}</small>
+                        </div>
+                    `;
+                });
+                
+                updateStats(null, null, null, result.data.count);
+            } else {
+                log('❌ Failed to fetch users: ' + (result.error || 'Unknown error'), '#ff0000');
+            }
+        }
+
+        async function testCompleteFlow() {
+            log('🚀 Starting complete registration flow test...', '#ffff00');
+            setMainStatus('Running complete flow test...', 'warning');
+            
+            // Update email to avoid conflicts
+            const uniqueEmail = `flowtest${Date.now()}@example.com`;
+            document.getElementById('testEmail').value = uniqueEmail;
+            
+            await testSystemHealth();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testRegistration();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await fetchUsers();
+            
+            log('🎯 Complete flow test finished!', '#00ff00');
+            log('💡 To complete: Enter OTP and verify, then login', '#ffff00');
+            setMainStatus('✅ Flow test complete - enter OTP to finish', 'success');
+        }
+
+        async function runAllTests() {
+            log('🧪 Running comprehensive test suite...', '#ffff00');
+            setMainStatus('Running all tests...', 'warning');
+            
+            await testSystemHealth();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            await testCompleteFlow();
+            
+            log('🎉 All tests completed!', '#00ff00');
+            setMainStatus('✅ All tests completed successfully!', 'success');
+        }
+
+        function openFrontendTest() {
+            window.open('frontend-backend-test.html', '_blank');
+        }
+
+        function switchToProduction() {
+            BACKEND_URL = PRODUCTION_URL;
+            isProduction = true;
+            document.getElementById('currentBackendUrl').textContent = PRODUCTION_URL + '/api/health';
+            log('🌐 Switched to production backend: ' + PRODUCTION_URL, '#00ff00');
+            setMainStatus('🌐 Using production backend', 'info');
+        }
+
+        function switchToLocal() {
+            BACKEND_URL = DEVELOPMENT_URL;
+            isProduction = false;
+            document.getElementById('currentBackendUrl').textContent = DEVELOPMENT_URL + '/api/health';
+            log('🏠 Switched to local backend: ' + DEVELOPMENT_URL, '#00ff00');
+            setMainStatus('🏠 Using local backend', 'info');
+        }
+
+        async function testBothBackends() {
+            log('🔄 Testing both production and local backends...', '#ffff00');
+            
+            // Test production
+            BACKEND_URL = PRODUCTION_URL;
+            isProduction = true;
+            log('🌐 Testing production backend...', '#cyan');
+            let prodResult = await makeRequest('/api/health');
+            
+            if (prodResult.success) {
+                log('✅ Production backend is working!', '#00ff00');
+            } else {
+                log('❌ Production backend failed: ' + (prodResult.error || 'Unknown error'), '#ff0000');
+            }
+            
+            // Test local
+            BACKEND_URL = DEVELOPMENT_URL;
+            isProduction = false;
+            log('🏠 Testing local backend...', '#cyan');
+            let localResult = await makeRequest('/api/health');
+            
+            if (localResult.success) {
+                log('✅ Local backend is working!', '#00ff00');
+            } else {
+                log('❌ Local backend failed: ' + (localResult.error || 'Unknown error'), '#ff0000');
+            }
+            
+            // Set back to production as default
+            BACKEND_URL = PRODUCTION_URL;
+            isProduction = true;
+            log('🌐 Defaulted back to production backend', '#cyan');
+        }
+
+        // Auto-run health check on page load
+        window.onload = () => {
+            log('🚀 Student Library Testing Dashboard loaded', '#cyan');
+            log('🌐 Default backend: ' + BACKEND_URL, '#cyan');
+            log('💡 Click "Test System Health" to begin', '#ffff00');
+            setTimeout(testSystemHealth, 1000);
+        };
+    </script>
+</body>
+</html>

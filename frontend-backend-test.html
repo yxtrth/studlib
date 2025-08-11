@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .form-group {
+            margin: 15px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .logs {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 Frontend-Backend Connection Test</h1>
+        
+        <div id="status" class="status info">
+            Ready to test frontend-backend connectivity
+        </div>
+
+        <div class="grid">
+            <div>
+                <h3>🏥 Backend Health Tests</h3>
+                <button onclick="testHealth()" id="healthBtn">Test Health Endpoint</button>
+                <button onclick="testCORS()" id="corsBtn">Test CORS</button>
+                <button onclick="testAllEndpoints()" id="allBtn">Test All Endpoints</button>
+            </div>
+
+            <div>
+                <h3>📝 Registration Test</h3>
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="testName" value="Test User" />
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="testEmail" value="test@example.com" />
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="testPassword" value="testpassword123" />
+                </div>
+                <button onclick="testRegistration()" id="regBtn">Test Registration</button>
+                <button onclick="testLogin()" id="loginBtn">Test Login</button>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="clearLogs()" style="background-color: #6c757d;">🧹 Clear Logs</button>
+            <button onclick="testProductionBackend()" style="background-color: #28a745;">🌐 Test Production Backend</button>
+        </div>
+
+        <div class="logs" id="logs">
+            <strong>📋 Connection Test Logs:</strong><br>
+            Ready to test... Click any button above to start.<br>
+        </div>
+
+        <div class="info status">
+            <strong>📍 Testing URLs:</strong><br>
+            • Local Backend: http://localhost:5003<br>
+            • Production Backend: https://your-render-url.onrender.com<br>
+            • Frontend Origin: https://inquisitive-kashata-b3ac7e.netlify.app
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:5003';
+        const PRODUCTION_URL = 'https://your-render-url.onrender.com'; // Update with actual URL
+        
+        const statusDiv = document.getElementById('status');
+        const logsDiv = document.getElementById('logs');
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'green' : type === 'error' ? 'red' : type === 'warning' ? 'orange' : 'blue';
+            logsDiv.innerHTML += `<span style="color: ${color}">[${timestamp}] ${message}</span><br>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function clearLogs() {
+            logsDiv.innerHTML = '<strong>📋 Connection Test Logs:</strong><br>Logs cleared...<br>';
+        }
+
+        function disableButtons(disabled = true) {
+            const buttons = ['healthBtn', 'corsBtn', 'allBtn', 'regBtn', 'loginBtn'];
+            buttons.forEach(id => {
+                document.getElementById(id).disabled = disabled;
+            });
+        }
+
+        async function testHealth() {
+            log('🏥 Testing health endpoint...', 'info');
+            setStatus('Testing health endpoint...', 'warning');
+            disableButtons(true);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Health check successful! Status: ${data.status}`, 'success');
+                    log(`📊 Server uptime: ${data.uptime}s`, 'info');
+                    setStatus('✅ Backend health check passed!', 'success');
+                } else {
+                    log(`❌ Health check failed: ${response.status} ${response.statusText}`, 'error');
+                    setStatus(`❌ Health check failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Connection failed: ${error.message}`, 'error');
+                setStatus('❌ Cannot reach backend server', 'error');
+                
+                if (error.message.includes('Failed to fetch')) {
+                    log('💡 This could be a CORS issue or server not running', 'warning');
+                }
+            } finally {
+                disableButtons(false);
+            }
+        }
+
+        async function testCORS() {
+            log('🌐 Testing CORS configuration...', 'info');
+            setStatus('Testing CORS...', 'warning');
+            disableButtons(true);
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': 'https://inquisitive-kashata-b3ac7e.netlify.app',
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    log('✅ CORS test passed - can access from frontend origin', 'success');
+                    setStatus('✅ CORS is properly configured', 'success');
+                } else {
+                    log(`⚠️ CORS test returned: ${response.status}`, 'warning');
+                    setStatus('⚠️ CORS may have issues', 'warning');
+                }
+            } catch (error) {
+                if (error.message.includes('CORS')) {
+                    log('❌ CORS policy blocked the request', 'error');
+                    setStatus('❌ CORS configuration problem', 'error');
+                } else {
+                    log(`❌ CORS test failed: ${error.message}`, 'error');
+                    setStatus('❌ CORS test failed', 'error');
+                }
+            } finally {
+                disableButtons(false);
+            }
+        }
+
+        async function testRegistration() {
+            log('📝 Testing registration endpoint...', 'info');
+            setStatus('Testing user registration...', 'warning');
+            disableButtons(true);
+
+            const testData = {
+                name: document.getElementById('testName').value,
+                email: document.getElementById('testEmail').value,
+                password: document.getElementById('testPassword').value
+            };
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    log(`✅ Registration successful! User ID: ${data.user.id}`, 'success');
+                    log(`📧 Email: ${data.user.email}`, 'info');
+                    setStatus('✅ Registration endpoint working!', 'success');
+                } else {
+                    log(`⚠️ Registration response: ${response.status} - ${data.message}`, 'warning');
+                    setStatus(`⚠️ Registration: ${data.message}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ Registration test failed: ${error.message}`, 'error');
+                setStatus('❌ Registration endpoint unreachable', 'error');
+            } finally {
+                disableButtons(false);
+            }
+        }
+
+        async function testLogin() {
+            log('🔐 Testing login endpoint...', 'info');
+            setStatus('Testing user login...', 'warning');
+            disableButtons(true);
+
+            const loginData = {
+                email: document.getElementById('testEmail').value,
+                password: document.getElementById('testPassword').value
+            };
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    log(`✅ Login successful! Token received`, 'success');
+                    log(`👤 User: ${data.user.name} (${data.user.email})`, 'info');
+                    setStatus('✅ Login endpoint working!', 'success');
+                } else {
+                    log(`⚠️ Login response: ${response.status} - ${data.message}`, 'warning');
+                    setStatus(`⚠️ Login: ${data.message}`, 'warning');
+                }
+            } catch (error) {
+                log(`❌ Login test failed: ${error.message}`, 'error');
+                setStatus('❌ Login endpoint unreachable', 'error');
+            } finally {
+                disableButtons(false);
+            }
+        }
+
+        async function testAllEndpoints() {
+            log('🧪 Running comprehensive endpoint tests...', 'info');
+            setStatus('Running all tests...', 'warning');
+            
+            await testHealth();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testCORS();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testRegistration();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await testLogin();
+            
+            log('🎯 All tests completed!', 'success');
+            setStatus('✅ Comprehensive testing completed', 'success');
+        }
+
+        async function testProductionBackend() {
+            log('🌐 Testing production backend...', 'info');
+            setStatus('Testing production backend...', 'warning');
+            
+            // This would test your actual Render deployment
+            log('💡 Production testing requires your actual Render URL', 'warning');
+            log('📝 Update PRODUCTION_URL variable with your Render URL', 'info');
+        }
+
+        // Auto-run health check on page load
+        window.onload = () => {
+            log('🚀 Page loaded, running auto health check...', 'info');
+            setTimeout(testHealth, 1000);
+        };
+    </script>
+</body>
+</html>
