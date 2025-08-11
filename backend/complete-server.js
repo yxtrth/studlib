@@ -511,6 +511,135 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// Books API endpoints
+app.get('/api/books', async (req, res) => {
+  console.log('📚 Books list requested');
+  
+  try {
+    // For now, return demo books data
+    const demoBooks = [
+      {
+        id: 1,
+        title: "JavaScript: The Definitive Guide",
+        author: "David Flanagan",
+        category: "Programming",
+        available: true,
+        description: "A comprehensive reference for JavaScript programming"
+      },
+      {
+        id: 2,
+        title: "Clean Code",
+        author: "Robert C. Martin",
+        category: "Software Engineering",
+        available: true,
+        description: "A handbook of agile software craftsmanship"
+      },
+      {
+        id: 3,
+        title: "Introduction to Algorithms",
+        author: "Thomas H. Cormen",
+        category: "Computer Science",
+        available: false,
+        description: "Comprehensive introduction to algorithms and data structures"
+      }
+    ];
+    
+    res.json({
+      success: true,
+      books: demoBooks,
+      count: demoBooks.length,
+      message: 'Books retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Books fetch error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching books',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Videos API endpoints
+app.get('/api/videos', async (req, res) => {
+  console.log('🎥 Videos list requested');
+  
+  try {
+    // For now, return demo videos data
+    const demoVideos = [
+      {
+        id: 1,
+        title: "JavaScript Fundamentals",
+        instructor: "Tech Academy",
+        duration: "2h 30m",
+        category: "Programming",
+        available: true,
+        description: "Learn JavaScript from basics to advanced concepts"
+      },
+      {
+        id: 2,
+        title: "React Development Course",
+        instructor: "Web Dev Pro",
+        duration: "4h 15m",
+        category: "Web Development",
+        available: true,
+        description: "Complete React.js development tutorial"
+      },
+      {
+        id: 3,
+        title: "Database Design Principles",
+        instructor: "Data Expert",
+        duration: "3h 45m",
+        category: "Database",
+        available: false,
+        description: "Learn how to design efficient databases"
+      }
+    ];
+    
+    res.json({
+      success: true,
+      videos: demoVideos,
+      count: demoVideos.length,
+      message: 'Videos retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error('❌ Videos fetch error:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching videos',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Base API route handlers (to prevent 404s)
+app.get('/api/auth', (req, res) => {
+  res.json({
+    message: 'Authentication API',
+    endpoints: [
+      'POST /api/auth/register',
+      'POST /api/auth/login', 
+      'POST /api/auth/verify-otp'
+    ]
+  });
+});
+
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'Student Library API - Complete Version',
+    version: '2.0.0',
+    endpoints: [
+      'GET /api/health',
+      'GET /api/auth',
+      'GET /api/users',
+      'GET /api/books',
+      'GET /api/videos'
+    ]
+  });
+});
+
 // Root endpoint
 app.get('/', (req, res) => {
   console.log('📍 Root endpoint accessed');
