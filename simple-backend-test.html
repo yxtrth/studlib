@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Simple Backend Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
+        .logs { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 5px; font-family: monospace; height: 400px; overflow-y: auto; margin: 20px 0; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+        .warning { color: #ffff00; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Backend Connection Test</h1>
+        <p>Testing: <strong>https://student-library-backend-o116.onrender.com</strong></p>
+        
+        <button onclick="testBasicConnection()">🌐 Test Basic Connection</button>
+        <button onclick="testWithDifferentMethod()">🔄 Try Different Method</button>
+        <button onclick="testLocalhost()">🏠 Test Localhost</button>
+        <button onclick="clearLogs()">🧹 Clear</button>
+        
+        <div class="logs" id="logs">
+            <div class="success">🚀 Ready to test backend connection</div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://student-library-backend-o116.onrender.com';
+        const LOCAL_URL = 'http://localhost:5003';
+        const logsDiv = document.getElementById('logs');
+
+        function log(message, className = 'success') {
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function clearLogs() {
+            logsDiv.innerHTML = '<div class="success">🧹 Logs cleared</div>';
+        }
+
+        async function testBasicConnection() {
+            log('🌐 Testing basic connection to production backend...', 'warning');
+            
+            try {
+                log(`📡 Attempting fetch to: ${BACKEND_URL}/api/health`, 'warning');
+                
+                const response = await fetch(`${BACKEND_URL}/api/health`, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                log(`📊 Response Status: ${response.status}`, 'warning');
+                log(`📋 Response OK: ${response.ok}`, 'warning');
+                log(`🔗 Response URL: ${response.url}`, 'warning');
+                
+                const responseText = await response.text();
+                log(`📄 Raw Response: ${responseText}`, 'warning');
+                
+                try {
+                    const data = JSON.parse(responseText);
+                    log(`📦 Parsed JSON: ${JSON.stringify(data, null, 2)}`, 'warning');
+                    
+                    if (response.ok) {
+                        log('✅ Connection successful!', 'success');
+                    } else {
+                        log(`❌ Server error: ${data.message || 'Unknown error'}`, 'error');
+                        log(`🔍 Error details: ${JSON.stringify(data.error || {})}`, 'error');
+                    }
+                } catch (parseError) {
+                    log(`❌ JSON parse error: ${parseError.message}`, 'error');
+                    log(`📄 Response was: ${responseText}`, 'error');
+                }
+                
+            } catch (error) {
+                log(`❌ Fetch error: ${error.message}`, 'error');
+                log(`🔍 Error name: ${error.name}`, 'error');
+                log(`📋 Error stack: ${error.stack}`, 'error');
+            }
+        }
+
+        async function testWithDifferentMethod() {
+            log('🔄 Testing with different fetch options...', 'warning');
+            
+            try {
+                log('📡 Trying with no-cors mode...', 'warning');
+                const response = await fetch(`${BACKEND_URL}/api/health`, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                log(`📊 No-CORS Response Status: ${response.status}`, 'warning');
+                log(`📋 No-CORS Response Type: ${response.type}`, 'warning');
+                
+                if (response.type === 'opaque') {
+                    log('⚠️ Got opaque response (CORS issue)', 'warning');
+                } else {
+                    log('✅ No-CORS method worked!', 'success');
+                }
+                
+            } catch (error) {
+                log(`❌ No-CORS error: ${error.message}`, 'error');
+            }
+            
+            // Also test with XMLHttpRequest
+            try {
+                log('📡 Trying with XMLHttpRequest...', 'warning');
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `${BACKEND_URL}/api/health`, true);
+                
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        log(`📊 XHR Status: ${xhr.status}`, 'warning');
+                        log(`📄 XHR Response: ${xhr.responseText}`, 'warning');
+                        
+                        if (xhr.status === 200) {
+                            log('✅ XHR method worked!', 'success');
+                        } else {
+                            log(`❌ XHR failed with status: ${xhr.status}`, 'error');
+                        }
+                    }
+                };
+                
+                xhr.onerror = function() {
+                    log('❌ XHR network error', 'error');
+                };
+                
+                xhr.send();
+                
+            } catch (error) {
+                log(`❌ XHR error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLocalhost() {
+            log('🏠 Testing localhost connection...', 'warning');
+            
+            try {
+                const response = await fetch(`${LOCAL_URL}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('✅ Localhost connection successful!', 'success');
+                    log(`📊 Local Database: ${data.database?.status}`, 'success');
+                } else {
+                    log(`❌ Localhost failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Localhost error: ${error.message}`, 'error');
+                log('💡 Make sure your local server is running', 'warning');
+            }
+        }
+
+        // Auto-test on page load
+        window.onload = () => {
+            log('🚀 Simple backend test tool loaded', 'success');
+            setTimeout(testBasicConnection, 1000);
+        };
+    </script>
+</body>
+</html>

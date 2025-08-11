@@ -8,7 +8,7 @@ async function testRenderURI() {
     console.log('=====================================');
     
     // This is the exact URI you said you have on Render
-    const renderURI = 'mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/?retryWrites=true&w=majority&appName=YATHSDATABASE';
+    const renderURI = 'mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/student-library?retryWrites=true&w=majority&appName=YATHSDATABASE';
     
     console.log('📡 Testing Render URI (WITHOUT database name):');
     console.log('   URI:', renderURI.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'));

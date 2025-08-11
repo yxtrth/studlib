@@ -7,7 +7,7 @@ const { seedDatabase } = require('./utils/seedData');
 require('dotenv').config();
 
 // Production MongoDB Atlas connection
-const PRODUCTION_MONGODB_URI = "mongodb+srv://<db_username>:bb@yathsdatabase.7fir4sd.mongodb.net/student-library?retryWrites=true&w=majority&appName=YATHSDATABASE";
+const PRODUCTION_MONGODB_URI = "mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/student-library?retryWrites=true&w=majority&appName=YATHSDATABASE";
 
 const connectDB = async () => {
   try {

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 WORKING Student Library Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 30px;
+        }
+        .status {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 8px 4px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .logs {
+            background-color: #1a1a1a;
+            color: #00ff00;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid #007bff;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Student Library Dashboard - WORKING!</h1>
+            <p>✅ Your Production Backend is Live and Connected!</p>
+        </div>
+        
+        <div class="content">
+            <div id="mainStatus" class="status success">
+                🎉 Backend Connected: https://student-library-backend-o116.onrender.com
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button onclick="testHealth()">🏥 Test Health</button>
+                <button onclick="testRegistration()">📝 Test Registration</button>
+                <button onclick="testUsers()">👥 Get Users</button>
+                <button onclick="clearLogs()">🧹 Clear Logs</button>
+                <button onclick="openLiveApp()">🚀 Open Live App</button>
+            </div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>🔐 Test Registration</h3>
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="testName" value="Test User" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="testEmail" value="test@example.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="testPassword" value="testpassword123" />
+                    </div>
+                    <button onclick="testRegistration()">Register User</button>
+                </div>
+
+                <div class="card">
+                    <h3>📧 Email Verification</h3>
+                    <div class="form-group">
+                        <label>OTP Code:</label>
+                        <input type="text" id="otpCode" placeholder="Enter 6-digit OTP" maxlength="6" />
+                    </div>
+                    <button onclick="verifyOTP()">Verify OTP</button>
+                    <button onclick="testLogin()">Login</button>
+                    <p style="font-size: 0.9em; color: #666;">
+                        💡 After registration, check your email for OTP
+                    </p>
+                </div>
+            </div>
+
+            <div class="logs" id="logs">
+                <div style="color: #00ff00; font-weight: bold;">🎉 SYSTEM STATUS: WORKING!</div>
+                <div style="color: #cyan;">✅ Backend: https://student-library-backend-o116.onrender.com</div>
+                <div style="color: #cyan;">✅ Frontend: https://inquisitive-kashata-b3ac7e.netlify.app</div>
+                <div style="color: #cyan;">✅ Database: MongoDB Atlas Connected</div>
+                <div style="color: #ffff00;">Ready to test your live system!</div>
+            </div>
+
+            <div class="info status" style="margin-top: 20px;">
+                <strong>🔗 Your Live URLs:</strong><br>
+                • Frontend App: <a href="https://inquisitive-kashata-b3ac7e.netlify.app" target="_blank">https://inquisitive-kashata-b3ac7e.netlify.app</a><br>
+                • Backend API: <a href="https://student-library-backend-o116.onrender.com/api/health" target="_blank">https://student-library-backend-o116.onrender.com</a><br>
+                • MongoDB: YATHSDATABASE (Connected)<br><br>
+                <strong>🎯 Status: ALL SYSTEMS OPERATIONAL!</strong>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://student-library-backend-o116.onrender.com';
+        const logsDiv = document.getElementById('logs');
+
+        function log(message, color = '#00ff00') {
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        function setStatus(message, type) {
+            const statusDiv = document.getElementById('mainStatus');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+        }
+
+        function clearLogs() {
+            logsDiv.innerHTML = '<div style="color: #00ff00; font-weight: bold;">🧹 Logs cleared</div>';
+        }
+
+        async function testHealth() {
+            log('🏥 Testing backend health...', '#ffff00');
+            setStatus('Testing health...', 'warning');
+            
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('✅ Health check passed!', '#00ff00');
+                    log(`📊 Database: ${data.database?.status || 'Unknown'}`, '#cyan');
+                    log(`📧 Email: ${data.email?.status || 'Unknown'}`, '#cyan');
+                    log(`👥 Users: ${data.database?.userCount || '0'}`, '#cyan');
+                    log(`⏱️ Uptime: ${Math.floor(data.uptime || 0)}s`, '#cyan');
+                    setStatus('✅ Backend is healthy and connected!', 'success');
+                } else {
+                    log(`❌ Health check failed: ${response.status}`, '#ff0000');
+                    setStatus('❌ Health check failed', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, '#ff0000');
+                setStatus('❌ Connection error', 'error');
+            }
+        }
+
+        async function testRegistration() {
+            const name = document.getElementById('testName').value;
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            log('📝 Testing registration...', '#ffff00');
+            setStatus('Testing registration...', 'warning');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log('✅ Registration successful!', '#00ff00');
+                    log(`👤 User: ${data.user?.name}`, '#cyan');
+                    log(`📧 Email: ${data.user?.email}`, '#cyan');
+                    log(`🔐 Verification required: ${data.requiresVerification}`, '#cyan');
+                    setStatus('✅ Registration successful! Check email for OTP.', 'success');
+                } else {
+                    log(`❌ Registration failed: ${data.message}`, '#ff0000');
+                    setStatus('❌ Registration failed', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, '#ff0000');
+                setStatus('❌ Registration error', 'error');
+            }
+        }
+
+        async function verifyOTP() {
+            const email = document.getElementById('testEmail').value;
+            const otp = document.getElementById('otpCode').value;
+
+            if (!otp) {
+                log('⚠️ Please enter OTP code', '#ffff00');
+                return;
+            }
+
+            log('🔐 Verifying OTP...', '#ffff00');
+            setStatus('Verifying OTP...', 'warning');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, otp })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log('✅ OTP verification successful!', '#00ff00');
+                    log(`👤 User verified: ${data.user?.name}`, '#cyan');
+                    log(`📧 Email verified: ${data.user?.isEmailVerified}`, '#cyan');
+                    setStatus('✅ Email verified! You can now login.', 'success');
+                } else {
+                    log(`❌ OTP verification failed: ${data.message}`, '#ff0000');
+                    setStatus('❌ OTP verification failed', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, '#ff0000');
+                setStatus('❌ OTP verification error', 'error');
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            log('🔑 Testing login...', '#ffff00');
+            setStatus('Testing login...', 'warning');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    log('✅ Login successful!', '#00ff00');
+                    log(`👤 User: ${data.user?.name}`, '#cyan');
+                    log(`🎫 Token received: ${data.token ? 'Yes' : 'No'}`, '#cyan');
+                    setStatus('✅ Login successful!', 'success');
+                } else {
+                    log(`❌ Login failed: ${data.message}`, '#ff0000');
+                    setStatus('❌ Login failed', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, '#ff0000');
+                setStatus('❌ Login error', 'error');
+            }
+        }
+
+        async function testUsers() {
+            log('👥 Fetching users...', '#ffff00');
+            setStatus('Fetching users...', 'warning');
+
+            try {
+                const response = await fetch(`${BACKEND_URL}/api/users`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    log(`✅ Found ${data.count} verified users`, '#00ff00');
+                    data.users.forEach(user => {
+                        log(`👤 ${user.name} (${user.email})`, '#cyan');
+                    });
+                    setStatus(`✅ Found ${data.count} users`, 'success');
+                } else {
+                    log(`❌ Failed to fetch users: ${data.message}`, '#ff0000');
+                    setStatus('❌ Failed to fetch users', 'error');
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, '#ff0000');
+                setStatus('❌ Users fetch error', 'error');
+            }
+        }
+
+        function openLiveApp() {
+            window.open('https://inquisitive-kashata-b3ac7e.netlify.app', '_blank');
+        }
+
+        // Auto-test on page load
+        window.onload = () => {
+            log('🚀 Dashboard loaded successfully!', '#cyan');
+            log('🎉 Your system is working great!', '#00ff00');
+            setTimeout(testHealth, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -30,7 +30,7 @@ Add these environment variables in Render dashboard:
 ```
 NODE_ENV=production
 PORT=5003
-MONGODB_URI=mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/?retryWrites=true&w=majority&appName=YATHSDATABASE
+MONGODB_URI=mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/student-library?retryWrites=true&w=majority&appName=YATHSDATABASE
 JWT_SECRET=your-super-secret-jwt-key-here-change-in-production-minimum-32-characters-long
 JWT_EXPIRE=7d
 CLIENT_URL=https://inquisitive-kashata-b3ac7e.netlify.app

@@ -2,7 +2,7 @@
 
 ## Your Current String:
 ```
-mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/?retryWrites=true&w=majority&appName=YATHSDATABASE
+mongodb+srv://yatharth10a:bb@yathsdatabase.7fir4sd.mongodb.net/student-library?retryWrites=true&w=majority&appName=YATHSDATABASE
 ```
 
 ## ❌ Issues Found:

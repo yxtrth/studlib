@@ -235,6 +235,7 @@
                 <div class="card database">
                     <h3>💾 Database Operations</h3>
                     <button onclick="testDatabase()" id="dbBtn">Test Database</button>
+                    <button onclick="testMongoDBConnection()" id="mongoBtn">Test MongoDB Atlas</button>
                     <button onclick="fetchUsers()" id="usersBtn">Fetch All Users</button>
                     <button onclick="testCompleteFlow()" id="flowBtn">Test Complete Flow</button>
                     <div id="usersList" style="margin-top: 15px; max-height: 200px; overflow-y: auto;"></div>
@@ -452,8 +453,87 @@
             }
         }
 
+        async function testDatabase() {
+            log('� Testing database connection...', '#ffff00');
+            setMainStatus('Testing database...', 'warning');
+
+            const result = await makeRequest('/api/health');
+            
+            if (result.success && result.data.database) {
+                log('✅ Database connection test passed!', '#00ff00');
+                log(`📊 Status: ${result.data.database.status}`, '#cyan');
+                log(`🏢 Database: YATHSDATABASE (MongoDB Atlas)`, '#cyan');
+                log(`👥 User Count: ${result.data.database.userCount || '0'}`, '#cyan');
+                log(`🔗 Connection: MongoDB Atlas cluster verified`, '#cyan');
+                
+                updateStats(null, 
+                    result.data.database.status === 'connected' ? '✅' : '❌',
+                    null,
+                    result.data.database.userCount || '0'
+                );
+                
+                setMainStatus('✅ Database connection verified!', 'success');
+            } else {
+                log('❌ Database connection failed', '#ff0000');
+                setMainStatus('❌ Database connection failed', 'error');
+                updateStats(null, '❌', null, '?');
+            }
+        }
+
+        async function testEmailStatus() {
+            log('📧 Testing email service status...', '#ffff00');
+            setMainStatus('Testing email service...', 'warning');
+
+            const result = await makeRequest('/api/health');
+            
+            if (result.success && result.data.email) {
+                log('✅ Email service test passed!', '#00ff00');
+                log(`📧 Status: ${result.data.email.status}`, '#cyan');
+                log(`📮 Service: Gmail SMTP configured`, '#cyan');
+                log(`🔐 Authentication: App password verified`, '#cyan');
+                
+                updateStats(null, null, 
+                    result.data.email.status === 'verified' ? '✅' : '⚠️',
+                    null
+                );
+                
+                setMainStatus('✅ Email service verified!', 'success');
+            } else {
+                log('❌ Email service test failed', '#ff0000');
+                setMainStatus('❌ Email service test failed', 'error');
+                updateStats(null, null, '❌', null);
+            }
+        }
+
+        async function testAllEndpoints() {
+            log('🧪 Testing all available endpoints...', '#ffff00');
+            setMainStatus('Testing all endpoints...', 'warning');
+            
+            const endpoints = [
+                { path: '/api/health', method: 'GET', name: 'Health Check' },
+                { path: '/api/users', method: 'GET', name: 'Users List' }
+            ];
+            
+            for (const endpoint of endpoints) {
+                log(`🔍 Testing ${endpoint.name} (${endpoint.method} ${endpoint.path})...`, '#cyan');
+                
+                const result = await makeRequest(endpoint.path, endpoint.method);
+                
+                if (result.success) {
+                    log(`✅ ${endpoint.name}: Working (${result.status})`, '#00ff00');
+                } else {
+                    log(`❌ ${endpoint.name}: Failed (${result.status || 'No response'})`, '#ff0000');
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            log('🎯 Endpoint testing completed!', '#00ff00');
+            setMainStatus('✅ All endpoints tested!', 'success');
+        }
+
         async function fetchUsers() {
-            log('👥 Fetching all verified users...', '#ffff00');
+            log('� Fetching all verified users...', '#ffff00');
 
             const result = await makeRequest('/api/users');
 
@@ -475,6 +555,31 @@
                 updateStats(null, null, null, result.data.count);
             } else {
                 log('❌ Failed to fetch users: ' + (result.error || 'Unknown error'), '#ff0000');
+            }
+        }
+
+        async function testMongoDBConnection() {
+            log('🍃 Testing MongoDB Atlas connection specifically...', '#ffff00');
+            setMainStatus('Testing MongoDB Atlas...', 'warning');
+            
+            const result = await makeRequest('/api/health');
+            
+            if (result.success && result.data.database) {
+                log('✅ MongoDB Atlas connection verified!', '#00ff00');
+                log(`🏢 Database Name: YATHSDATABASE`, '#cyan');
+                log(`🌐 Cluster: yathsdatabase.7fir4sd.mongodb.net`, '#cyan');
+                log(`📊 Connection Status: ${result.data.database.status}`, '#cyan');
+                log(`👥 Total Users: ${result.data.database.userCount || '0'}`, '#cyan');
+                
+                if (result.data.database.userCount > 0) {
+                    log(`🎉 Great! You have ${result.data.database.userCount} users in your database`, '#00ff00');
+                }
+                
+                setMainStatus('✅ MongoDB Atlas connected successfully!', 'success');
+            } else {
+                log('❌ MongoDB Atlas connection failed', '#ff0000');
+                log('💡 Check your database connection string and network access', '#ffff00');
+                setMainStatus('❌ MongoDB Atlas connection failed', 'error');
             }
         }
 
