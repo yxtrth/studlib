@@ -24,7 +24,25 @@ const generateOTP = () => {
 // Send OTP email
 const sendOTPEmail = async (email, otp, name) => {
   try {
+    // Validate environment variables
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('❌ Email configuration missing: EMAIL_USER or EMAIL_PASS not set');
+      return false;
+    }
+
+    console.log('📧 Attempting to send OTP email to:', email);
+    console.log('🔐 Using email user:', process.env.EMAIL_USER);
+    
     const transporter = createTransporter();
+    
+    // Verify transporter configuration
+    try {
+      await transporter.verify();
+      console.log('✅ Email transporter verified successfully');
+    } catch (verifyError) {
+      console.error('❌ Email transporter verification failed:', verifyError.message);
+      return false;
+    }
     
     const mailOptions = {
       from: process.env.EMAIL_USER,
@@ -34,7 +52,7 @@ const sendOTPEmail = async (email, otp, name) => {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #333; text-align: center;">Welcome to Student Library!</h2>
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #495057;">Hello ${name},</h3>
+            <h3 style="color: #495057;">Hello ${name || 'Student'},</h3>
             <p style="color: #6c757d; line-height: 1.6;">
               Thank you for registering with Student Library! To complete your registration and start accessing our resources, please verify your email address.
             </p>
@@ -57,11 +75,13 @@ const sendOTPEmail = async (email, otp, name) => {
       `
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log(`OTP sent to ${email}: ${otp}`);
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ OTP email sent successfully to:', email);
+    console.log('📬 Message ID:', result.messageId);
     return true;
   } catch (error) {
-    console.error('Error sending OTP email:', error);
+    console.error('❌ Error sending OTP email:', error.message);
+    console.error('❌ Full error:', error);
     return false;
   }
 };

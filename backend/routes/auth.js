@@ -99,13 +99,18 @@ router.post('/register', upload.single('avatar'), validateRegistration, async (r
 
     // Handle avatar upload if provided
     if (req.file) {
-      // Here you would typically upload to Cloudinary
-      // For now, we'll use a placeholder
+      // For now, use a default avatar until Cloudinary is configured
       userData.avatar = {
-        public_id: 'temp_' + Date.now(),
-        url: '/api/uploads/avatars/default.png'
+        public_id: 'default_avatar',
+        url: 'https://via.placeholder.com/150/007bff/ffffff?text=' + encodeURIComponent(name.charAt(0).toUpperCase())
       };
       console.log('📸 Avatar file uploaded:', req.file.originalname);
+    } else {
+      // Default avatar with user's initial
+      userData.avatar = {
+        public_id: 'default_avatar',
+        url: 'https://via.placeholder.com/150/007bff/ffffff?text=' + encodeURIComponent(name.charAt(0).toUpperCase())
+      };
     }
 
     // Create new user (password will be hashed by pre-save middleware)
@@ -120,18 +125,21 @@ router.post('/register', upload.single('avatar'), validateRegistration, async (r
     const user = await User.create(userData);
 
     // Send OTP email
+    console.log('📧 Attempting to send OTP email...');
     const emailSent = await sendOTPEmail(user.email, otp, user.name);
     
     if (!emailSent) {
+      console.error('❌ Failed to send OTP email, deleting user');
       // If email fails, delete the user and return error
       await User.findByIdAndDelete(user._id);
       return res.status(500).json({
         success: false,
-        message: 'Failed to send verification email. Please try again.'
+        message: 'Failed to send verification email. Please check your email address and try again.',
+        errorCode: 'EMAIL_SEND_FAILED'
       });
     }
 
-    console.log('✅ User created, OTP sent to:', user.email);
+    console.log('✅ User created successfully, OTP sent to:', user.email);
 
     res.status(201).json({
       success: true,
@@ -141,11 +149,29 @@ router.post('/register', upload.single('avatar'), validateRegistration, async (r
       requiresVerification: true
     });
   } catch (error) {
-    console.error('❌ Registration error:', error);
+    console.error('❌ Registration error:', error.message);
+    console.error('❌ Full error stack:', error.stack);
+    
+    // More specific error messages
+    let errorMessage = 'Server error during registration';
+    let errorCode = 'REGISTRATION_FAILED';
+    
+    if (error.name === 'ValidationError') {
+      errorMessage = 'Invalid data provided';
+      errorCode = 'VALIDATION_ERROR';
+    } else if (error.code === 11000) {
+      errorMessage = 'User already exists with this email';
+      errorCode = 'DUPLICATE_EMAIL';
+    }
+    
     res.status(500).json({ 
       success: false,
-      message: 'Server error during registration',
-      ...(process.env.NODE_ENV === 'development' && { debug: error.message })
+      message: errorMessage,
+      errorCode: errorCode,
+      ...(process.env.NODE_ENV === 'development' && { 
+        debug: error.message,
+        stack: error.stack 
+      })
     });
   }
 });
