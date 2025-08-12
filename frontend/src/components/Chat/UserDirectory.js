@@ -7,7 +7,6 @@ import {
   UserIcon,
   AcademicCapIcon,
   ClockIcon,
-  CheckCircleIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';

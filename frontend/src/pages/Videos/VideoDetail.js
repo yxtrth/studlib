@@ -8,11 +8,7 @@ import {
   CalendarIcon,
   TagIcon,
   ArrowLeftIcon,
-  ShareIcon,
-  PlayIcon,
-  PauseIcon,
-  SpeakerWaveIcon,
-  SpeakerXMarkIcon,
+  ShareIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
@@ -30,11 +26,6 @@ const VideoDetail = () => {
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
     if (id) {
@@ -111,40 +102,7 @@ const VideoDetail = () => {
     return url.startsWith('http') ? url : 'https://www.youtube.com/embed/PkZNo7MFNFg';
   };
 
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      const current = videoRef.current.currentTime;
-      const total = videoRef.current.duration;
-      setCurrentTime(current);
-      setProgress((current / total) * 100);
-    }
-  };
-
-  const handleSeek = (e) => {
-    if (videoRef.current) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const pos = (e.clientX - rect.left) / rect.width;
-      videoRef.current.currentTime = pos * duration;
-    }
-  };
+  // Video handlers removed as we're using iframe for video playback
 
   const formatTime = (seconds) => {
     if (isNaN(seconds)) return '0:00';
