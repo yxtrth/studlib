@@ -49,11 +49,16 @@ const Register = () => {
 
       // Registration successful, redirect to OTP verification
       toast.success(response.data.message);
+      const { tempToken } = response.data;
+      if (!tempToken) {
+        throw new Error('No temporary token received');
+      }
       navigate('/verify-otp', {
         state: {
           email: formData.email,
-          tempToken: response.data.tempToken
-        }
+          tempToken: tempToken
+        },
+        replace: true
       });
     } catch (error) {
       toast.error(error.response?.data?.error || 'Registration failed');

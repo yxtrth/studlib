@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = 'https://student-library-backend-o116.onrender.com/api';
 
 // Queue to store requests that failed due to token expiry
 let refreshQueue = [];
@@ -8,7 +8,7 @@ let isRefreshing = false;
 
 const api = axios.create({
     baseURL: BASE_URL,
-    withCredentials: true, // Required for cookies
+    withCredentials: false, // Changed to false for cross-origin requests
     headers: {
         'Content-Type': 'application/json'
     }

@@ -7,10 +7,14 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
+const corsOptions = require('./config/cors.config');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5003;
+
+// Apply CORS configuration
+app.use(cors(corsOptions));
 
 // Email service setup
 console.log('📧 Setting up email service...');
@@ -177,16 +181,30 @@ const User = mongoose.model('User', UserSchema);
 
 // Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'https://inquisitive-kashata-b3ac7e.netlify.app',
-    'http://localhost:5173',
-    'http://127.0.0.1:5500',
-    'file://', // For local HTML files
-    /^https:\/\/.*--inquisitive-kashata-b3ac7e\.netlify\.app$/, // Netlify preview URLs
-    /^https:\/\/.*\.netlify\.app$/ // Any Netlify app
-  ],
-  credentials: true
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      'https://studenlibyyth.netlify.app',
+      'http://localhost:3000',
+      'http://localhost:5173',
+      undefined // Allow requests with no origin (like mobile apps or curl)
+    ];
+    
+    // Allow all netlify.app domains (including deploy previews)
+    if (origin && (origin.endsWith('.netlify.app') || origin.includes('--'))) {
+      return callback(null, true);
+    }
+
+    // Check if origin is in allowedOrigins
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('❌ Blocked by CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false // Set to false for now since we're not using cookies
 }));
 
 app.use(express.json());

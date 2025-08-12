@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
@@ -19,13 +19,16 @@ const OTPVerification = () => {
   const location = useLocation();
 
   // Get user data from navigation state
-  const userEmail = location.state?.email;
-  const tempToken = location.state?.tempToken;
+  const { state } = location;
+  const userEmail = state?.email;
+  const tempToken = state?.tempToken;
 
-  if (!userEmail || !tempToken) {
-    navigate('/register');
-    return null;
-  }
+  React.useEffect(() => {
+    if (!userEmail || !tempToken) {
+      toast.error('Please register first');
+      navigate('/register', { replace: true });
+    }
+  }, [userEmail, tempToken, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
