@@ -11,7 +11,9 @@
     "test:coverage": "jest --coverage",
     "seed": "node seed.js",
     "seed:dev": "nodemon seed.js",
-    "seed:production": "node seed-production.js"
+    "seed:production": "node seed-production.js",
+    "reset-users": "node resetUsers.js",
+    "create-admin": "node createAdmin.js"
   },
   "keywords": [
     "student",

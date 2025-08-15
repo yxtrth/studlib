@@ -699,4 +699,123 @@ router.post('/fix-urls', async (req, res) => {
   }
 });
 
+// @desc    Create new admin user
+// @route   POST /api/admin/create-admin
+// @access  Private (Admin only)
+router.post('/create-admin', protect, admin, [
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Name must be between 2 and 50 characters'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters long')
+], async (req, res) => {
+  try {
+    // Check for validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { name, email, password, department = 'Administration', studentId } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+
+    // Hash password
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create admin user
+    const adminUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role: 'admin',
+      isActive: true,
+      department,
+      studentId: studentId || `ADMIN${Date.now().toString().slice(-6)}`,
+      bio: 'System Administrator'
+    });
+
+    await adminUser.save();
+
+    console.log(`New admin user created by ${req.user.email}: ${email}`);
+
+    res.status(201).json({
+      success: true,
+      message: 'Admin user created successfully',
+      admin: {
+        id: adminUser._id,
+        name: adminUser.name,
+        email: adminUser.email,
+        role: adminUser.role,
+        department: adminUser.department,
+        studentId: adminUser.studentId
+      }
+    });
+
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create admin user',
+      error: error.message
+    });
+  }
+});
+
+// @desc    Reset all users (delete all users)
+// @route   DELETE /api/admin/reset-users
+// @access  Private (Admin only)
+router.delete('/reset-users', protect, admin, async (req, res) => {
+  try {
+    // Count existing users before deletion
+    const userCount = await User.countDocuments();
+    
+    if (userCount === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No users found to delete',
+        deletedCount: 0
+      });
+    }
+    
+    // Delete all users
+    const result = await User.deleteMany({});
+    
+    console.log(`Admin ${req.user.email} deleted ${result.deletedCount} users`);
+    
+    res.status(200).json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} users`,
+      deletedCount: result.deletedCount
+    });
+    
+  } catch (error) {
+    console.error('Error resetting users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset users',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
