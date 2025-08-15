@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchVideoById, rateVideo } from '../../store/slices/videosSlice';
@@ -7,8 +7,7 @@ import {
   EyeIcon,
   CalendarIcon,
   TagIcon,
-  ArrowLeftIcon,
-  ShareIcon
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon as StarSolidIcon } from '@heroicons/react/24/solid';
 import LoadingSpinner from '../../components/UI/LoadingSpinner';
@@ -18,8 +17,6 @@ const VideoDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const videoRef = useRef(null);
-  
   const { currentVideo, isLoading } = useSelector((state) => state.videos);
   const { user } = useSelector((state) => state.auth);
   
@@ -57,19 +54,6 @@ const VideoDetail = () => {
     }
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: currentVideo.title,
-        text: `Check out this video: ${currentVideo.title}`,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied to clipboard!');
-    }
-  };
-
   // Convert YouTube URL to embed format if needed
   const getEmbedUrl = (url) => {
     if (!url) {
@@ -104,13 +88,7 @@ const VideoDetail = () => {
 
   // Video handlers removed as we're using iframe for video playback
 
-  const formatTime = (seconds) => {
-    if (isNaN(seconds)) return '0:00';
-    
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Time formatting removed as we're using embedded video player
 
   if (isLoading) {
     return (
@@ -316,12 +294,6 @@ const VideoDetail = () => {
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Video Details</h3>
               <div className="space-y-3">
-                <div>
-                  <span className="text-sm font-medium text-gray-500">Duration:</span>
-                  <span className="text-sm text-gray-900 ml-2">
-                    {formatTime(duration)}
-                  </span>
-                </div>
                 <div>
                   <span className="text-sm font-medium text-gray-500">Category:</span>
                   <span className="text-sm text-gray-900 ml-2">{currentVideo.category}</span>

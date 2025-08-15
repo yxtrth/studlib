@@ -1,12 +1,13 @@
 [build]
   base = "frontend"
   publish = "build"
-  command = "CI=false npm run build"
+  command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18.17.0"
   REACT_APP_API_URL = "https://your-backend-name.onrender.com/api"
   CI = "false"
+  GENERATE_SOURCEMAP = "false"
 
 [[redirects]]
   from = "/*"

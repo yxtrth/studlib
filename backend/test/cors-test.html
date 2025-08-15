@@ -15,6 +15,9 @@
     <div>
         <button onclick="testHealth()">Test Health Endpoint</button>
         <button onclick="testRegistration()">Test Registration</button>
+        <div id="serverStatus" style="margin-top: 10px; padding: 10px; border-radius: 4px; background-color: #fff3cd; color: #856404;">
+            Checking server status...
+        </div>
     </div>
     <div id="results"></div>
 
@@ -33,8 +36,11 @@
             try {
                 const response = await fetch(`${backendUrl}/api/health`);
                 const data = await response.json();
-                addResult(`Health Check Success: ${JSON.stringify(data)}`, true);
+                const isSuccess = response.ok && data.status === 'OK';
+                addResult(`Health Check ${isSuccess ? 'Success' : 'Failed'}: ${JSON.stringify(data)}`, isSuccess);
+                console.log('Health Check Response:', { status: response.status, data });
             } catch (error) {
+                console.error('Health Check Error:', error);
                 addResult(`Health Check Failed: ${error.message}`, false);
             }
         }
@@ -47,6 +53,8 @@
                     password: "test123456"
                 };
 
+                console.log('Attempting registration with:', testUser);
+
                 const response = await fetch(`${backendUrl}/api/auth/register-simple`, {
                     method: 'POST',
                     headers: {
@@ -56,13 +64,47 @@
                 });
 
                 const data = await response.json();
-                addResult(`Registration Test: ${JSON.stringify(data)}`, response.ok);
+                console.log('Registration Response:', { status: response.status, data });
+                
+                const isSuccess = response.ok && data.success;
+                addResult(`Registration Test: ${JSON.stringify(data)}`, isSuccess);
+                
+                if (!response.ok) {
+                    console.warn('Registration failed with status:', response.status);
+                }
             } catch (error) {
+                console.error('Registration Error:', error);
                 addResult(`Registration Test Failed: ${error.message}`, false);
             }
         }
 
-        // Run initial health check
+        // Server status check
+        async function checkServerStatus() {
+            const statusDiv = document.getElementById('serverStatus');
+            try {
+                const start = Date.now();
+                const response = await fetch(`${backendUrl}/api/health`);
+                const responseTime = Date.now() - start;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.style.backgroundColor = '#d4edda';
+                    statusDiv.style.color = '#155724';
+                    statusDiv.textContent = `Server is online (Response time: ${responseTime}ms) - ${data.status}`;
+                } else {
+                    statusDiv.style.backgroundColor = '#f8d7da';
+                    statusDiv.style.color = '#721c24';
+                    statusDiv.textContent = `Server error: ${response.status} - ${response.statusText}`;
+                }
+            } catch (error) {
+                statusDiv.style.backgroundColor = '#f8d7da';
+                statusDiv.style.color = '#721c24';
+                statusDiv.textContent = `Server unreachable: ${error.message}`;
+            }
+        }
+
+        // Run initial checks
+        checkServerStatus();
         testHealth();
     </script>
 </body>
